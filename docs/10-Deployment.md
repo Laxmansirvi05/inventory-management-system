@@ -30,20 +30,17 @@ git init && git add -A && git commit -m "Inventory Management System"
 4. Allowed IP addresses: for a demo, allow all (`0.0.0.0/0`); Render's free web services have no fixed outgoing address.
 
 ### 3. Load the database
-Run this in **your own terminal** so the password never appears in chat or in shell history:
+Run this in the **Terminal panel** (a real terminal, not the chat box), from the project folder:
 ```bash
-export MYSQL_HOST=<aiven host> MYSQL_PORT=<aiven port> MYSQL_USER=avnadmin MYSQL_SSL_CA=/path/to/ca.pem
-ask() { printf '%s: ' "$1"; stty -echo; read v; stty echo; echo; export "$2=$v"; }
-ask "Aiven database password" MYSQL_PWD
-ask "Password you want for the web login 'admin' (8+ characters)" IMS_ADMIN_PASSWORD
-ask "Password you want for the web login 'employee' (8+ characters)" IMS_EMPLOYEE_PASSWORD
-scripts/load_db.sh defaultdb
+scripts/load_aiven.sh <aiven host> <aiven port>
 ```
-The script keeps the database and recreates only the IMS tables, triggers and views, inserts the seed data, then replaces the demo passwords with the two you typed (stored salted and hashed, like every password in the app). It refuses to load a remote database without them.
+It asks for three passwords with hidden typing: the Aiven database password, then the new web passwords for `admin` and `employee` (8+ characters each). Nothing is echoed, printed, typed on a command line or saved in shell history. It refuses to start without a real terminal, and the certificate is expected at `~/Downloads/ca.pem` (a fourth argument changes that).
+
+Under the hood it calls `scripts/load_db.sh`: it keeps the database and recreates only the IMS tables, triggers and views, inserts the seed data, then replaces the demo passwords with the two you typed (salted and hashed, like every password in the app). A real remote load starts with the line `Remote server <host>: using existing database ...`; if that line is missing, the settings did not reach the script (it ran against local MySQL instead).
 
 **If it stops with `ERROR 1419 ... SUPER privilege and binary logging is enabled`:** the account may not create triggers. On MySQL 8.0.46 in a container, with a non-SUPER account, both of these worked:
 - the server setting `log_bin_trust_function_creators = 1`, or
-- granting the account the privilege `SET_USER_ID`.
+- granting the account the privilege `SET_USER_ID` (**not usable on newer servers**: a local MySQL 26.x rejected it, and Aiven runs 8.4, so do not count on it).
 
 Whether Aiven lets you do either was **not** checked. Look in the service's advanced settings or ask Aiven support. If neither is possible, the plan's fallback applies (`08-Implementation-Plan.md`, risks): run the demo on local MySQL and show the Aiven part with screenshots.
 
