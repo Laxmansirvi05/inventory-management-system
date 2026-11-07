@@ -57,7 +57,7 @@ Optional DCL accounts (needs permission to create users): `ROLE_ADMIN_PASSWORD=.
 | `COOKIE_SECURE` | `1` (already set in `render.yaml`) |
 | `SHOP_NAME` | printed on the bill (optional) |
 
-`PORT` is set by Render itself. The health check is `GET /api/health`.
+`render.yaml` sets the region to Singapore so the app sits next to an Aiven service in Singapore; if your database is elsewhere, change `region` to match. `PORT` is set by Render itself. The health check is `GET /api/health`.
 3. First build compiles the C++ code and can take several minutes. If the build runs out of memory on the free plan, change `-j2` to `-j1` in the `Dockerfile`.
 
 ### 5. Smoke-test the live URL
