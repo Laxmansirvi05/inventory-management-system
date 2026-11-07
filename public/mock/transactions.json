@@ -1,0 +1,151 @@
+{
+ "data": [
+  {
+   "product_name": "Notebook 100 Pages",
+   "quantity_change": -2,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:44",
+   "txn_id": 149,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "Highlighter Set",
+   "quantity_change": -40,
+   "remarks": "Undo of last PURCHASE",
+   "txn_date": "2026-11-07 15:13:44",
+   "txn_id": 148,
+   "txn_type": "UNDO"
+  },
+  {
+   "product_name": "Highlighter Set",
+   "quantity_change": 40,
+   "remarks": "Stock received",
+   "txn_date": "2026-11-07 15:13:44",
+   "txn_id": 147,
+   "txn_type": "PURCHASE"
+  },
+  {
+   "product_name": "Hand Wash 250ml",
+   "quantity_change": -166,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 146,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "LED Bulb 9W",
+   "quantity_change": -6,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 145,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "USB Flash Drive 32GB",
+   "quantity_change": -4,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 144,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "Mineral Water 1L",
+   "quantity_change": -444,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 143,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "Highlighter Set",
+   "quantity_change": -4,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 142,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "Matchbox Pack",
+   "quantity_change": -4,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 141,
+   "txn_type": "SALE"
+  },
+  {
+   "product_name": "Deodorant 150ml",
+   "quantity_change": -7,
+   "remarks": "Stock sold",
+   "txn_date": "2026-11-07 15:13:42",
+   "txn_id": 140,
+   "txn_type": "SALE"
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.417333,
+   "result": {
+    "columns": [
+     "txn_id",
+     "txn_date",
+     "product_name",
+     "txn_type",
+     "quantity_change",
+     "remarks"
+    ],
+    "rows": [
+     [
+      "149",
+      "2026-11-07 15:13:44",
+      "Notebook 100 Pages",
+      "SALE",
+      "-2",
+      "Stock sold"
+     ],
+     [
+      "148",
+      "2026-11-07 15:13:44",
+      "Highlighter Set",
+      "UNDO",
+      "-40",
+      "Undo of last PURCHASE"
+     ],
+     [
+      "147",
+      "2026-11-07 15:13:44",
+      "Highlighter Set",
+      "PURCHASE",
+      "40",
+      "Stock received"
+     ],
+     [
+      "146",
+      "2026-11-07 15:13:42",
+      "Hand Wash 250ml",
+      "SALE",
+      "-166",
+      "Stock sold"
+     ],
+     [
+      "145",
+      "2026-11-07 15:13:42",
+      "LED Bulb 9W",
+      "SALE",
+      "-6",
+      "Stock sold"
+     ]
+    ],
+    "total": 10
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT t.txn_id, t.txn_date, p.product_name, t.txn_type, t.quantity_change, t.remarks FROM Stock_Transactions t JOIN Products p ON p.product_id = t.product_id ORDER BY t.txn_id DESC LIMIT 10",
+   "triggers": []
+  }
+ ]
+}

@@ -1,0 +1,156 @@
+{
+ "data": [
+  {
+   "item_lines": 1,
+   "purchase_date": "2026-11-07",
+   "purchase_id": 13,
+   "supplier_name": "Value Mart Agencies",
+   "total_amount": 800.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-09-23",
+   "purchase_id": 12,
+   "supplier_name": "Value Mart Agencies",
+   "total_amount": 3832.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-08-20",
+   "purchase_id": 11,
+   "supplier_name": "Value Mart Agencies",
+   "total_amount": 10035.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-08-17",
+   "purchase_id": 10,
+   "supplier_name": "Metro Wholesale",
+   "total_amount": 13172.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-07-14",
+   "purchase_id": 9,
+   "supplier_name": "Metro Wholesale",
+   "total_amount": 9859.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-07-11",
+   "purchase_id": 8,
+   "supplier_name": "Value Mart Agencies",
+   "total_amount": 5352.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-06-08",
+   "purchase_id": 7,
+   "supplier_name": "Metro Wholesale",
+   "total_amount": 10984.0
+  },
+  {
+   "item_lines": 4,
+   "purchase_date": "2026-06-05",
+   "purchase_id": 6,
+   "supplier_name": "Deccan Distributors",
+   "total_amount": 46742.0
+  },
+  {
+   "item_lines": 20,
+   "purchase_date": "2026-05-15",
+   "purchase_id": 5,
+   "supplier_name": "Value Mart Agencies",
+   "total_amount": 114205.0
+  },
+  {
+   "item_lines": 10,
+   "purchase_date": "2026-04-08",
+   "purchase_id": 4,
+   "supplier_name": "Krishna Supplies",
+   "total_amount": 83490.0
+  },
+  {
+   "item_lines": 10,
+   "purchase_date": "2026-03-12",
+   "purchase_id": 3,
+   "supplier_name": "Deccan Distributors",
+   "total_amount": 156505.0
+  },
+  {
+   "item_lines": 13,
+   "purchase_date": "2026-02-05",
+   "purchase_id": 2,
+   "supplier_name": "Metro Wholesale",
+   "total_amount": 110856.0
+  },
+  {
+   "item_lines": 7,
+   "purchase_date": "2026-01-10",
+   "purchase_id": 1,
+   "supplier_name": "Sri Balaji Traders",
+   "total_amount": 19790.0
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.34675,
+   "result": {
+    "columns": [
+     "purchase_id",
+     "purchase_date",
+     "supplier_name",
+     "total_amount",
+     "item_lines"
+    ],
+    "rows": [
+     [
+      "13",
+      "2026-11-07",
+      "Value Mart Agencies",
+      "800.00",
+      "1"
+     ],
+     [
+      "12",
+      "2026-09-23",
+      "Value Mart Agencies",
+      "3832.00",
+      "4"
+     ],
+     [
+      "11",
+      "2026-08-20",
+      "Value Mart Agencies",
+      "10035.00",
+      "4"
+     ],
+     [
+      "10",
+      "2026-08-17",
+      "Metro Wholesale",
+      "13172.00",
+      "4"
+     ],
+     [
+      "9",
+      "2026-07-14",
+      "Metro Wholesale",
+      "9859.00",
+      "4"
+     ]
+    ],
+    "total": 13
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT p.purchase_id, p.purchase_date, s.supplier_name, p.total_amount, COUNT(pi.product_id) AS item_lines FROM Purchases p JOIN Suppliers s ON s.supplier_id = p.supplier_id LEFT JOIN Purchase_Items pi ON pi.purchase_id = p.purchase_id GROUP BY p.purchase_id, p.purchase_date, s.supplier_name, p.total_amount ORDER BY p.purchase_id DESC LIMIT 50",
+   "triggers": []
+  }
+ ]
+}

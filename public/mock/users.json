@@ -1,0 +1,53 @@
+{
+ "data": [
+  {
+   "created_at": "2026-11-07 15:13:42",
+   "role": "ADMIN",
+   "user_id": 1,
+   "username": "admin"
+  },
+  {
+   "created_at": "2026-11-07 15:13:42",
+   "role": "EMPLOYEE",
+   "user_id": 2,
+   "username": "employee"
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.325333,
+   "result": {
+    "columns": [
+     "user_id",
+     "username",
+     "role",
+     "created_at"
+    ],
+    "rows": [
+     [
+      "1",
+      "admin",
+      "ADMIN",
+      "2026-11-07 15:13:42"
+     ],
+     [
+      "2",
+      "employee",
+      "EMPLOYEE",
+      "2026-11-07 15:13:42"
+     ]
+    ],
+    "total": 2
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT user_id, username, role, created_at FROM Users ORDER BY username",
+   "triggers": []
+  }
+ ]
+}

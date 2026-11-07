@@ -1,0 +1,27 @@
+{
+ "data": {
+  "orders": [
+   {
+    "customer_id": 1,
+    "items": 1,
+    "message": "OK",
+    "order_id": 1,
+    "sale_id": 26,
+    "status": "done",
+    "total": 70.0
+   },
+   {
+    "customer_id": 1,
+    "items": 1,
+    "message": "Insufficient stock for product 6",
+    "order_id": 2,
+    "sale_id": null,
+    "status": "failed",
+    "total": 0.0
+   }
+  ],
+  "pending": 0
+ },
+ "ok": true,
+ "sql_log": []
+}

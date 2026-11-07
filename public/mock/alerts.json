@@ -1,0 +1,66 @@
+{
+ "data": [
+  {
+   "min_stock_level": 80,
+   "name": "Mineral Water 1L",
+   "product_id": 31,
+   "ratio": 0.3,
+   "sku": "SKU0031",
+   "status": "Critical",
+   "stock_quantity": 24,
+   "supplier_name": "Value Mart Agencies"
+  },
+  {
+   "min_stock_level": 40,
+   "name": "Wheat Flour 1kg",
+   "product_id": 22,
+   "ratio": 0.5,
+   "sku": "SKU0022",
+   "status": "Critical",
+   "stock_quantity": 20,
+   "supplier_name": "Krishna Supplies"
+  },
+  {
+   "min_stock_level": 40,
+   "name": "Gel Pen",
+   "product_id": 3,
+   "ratio": 0.8,
+   "sku": "SKU0003",
+   "status": "Low",
+   "stock_quantity": 32,
+   "supplier_name": "Sri Balaji Traders"
+  },
+  {
+   "min_stock_level": 25,
+   "name": "Hand Wash 250ml",
+   "product_id": 45,
+   "ratio": 0.8,
+   "sku": "SKU0045",
+   "status": "Low",
+   "stock_quantity": 20,
+   "supplier_name": "Metro Wholesale"
+  },
+  {
+   "min_stock_level": 10,
+   "name": "Stapler Medium",
+   "product_id": 8,
+   "ratio": 1.0,
+   "sku": "SKU0008",
+   "status": "Low",
+   "stock_quantity": 10,
+   "supplier_name": "Sri Balaji Traders"
+  },
+  {
+   "min_stock_level": 15,
+   "name": "Earphones Wired",
+   "product_id": 12,
+   "ratio": 1.0,
+   "sku": "SKU0012",
+   "status": "Low",
+   "stock_quantity": 15,
+   "supplier_name": "Deccan Distributors"
+  }
+ ],
+ "ok": true,
+ "sql_log": []
+}

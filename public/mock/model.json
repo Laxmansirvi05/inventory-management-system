@@ -1,0 +1,574 @@
+{
+ "data": {
+  "tables": [
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "category_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "UNI",
+      "name": "category_name",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(50)"
+     },
+     {
+      "key": "",
+      "name": "description",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(150)"
+     }
+    ],
+    "name": "Categories"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "customer_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "customer_name",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(80)"
+     },
+     {
+      "key": "UNI",
+      "name": "phone",
+      "nullable": false,
+      "references": null,
+      "type": "char(10)"
+     },
+     {
+      "key": "UNI",
+      "name": "email",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(80)"
+     },
+     {
+      "key": "",
+      "name": "city",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(40)"
+     },
+     {
+      "key": "",
+      "name": "registered_on",
+      "nullable": false,
+      "references": null,
+      "type": "date"
+     }
+    ],
+    "name": "Customers"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "product_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "UNI",
+      "name": "sku",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(20)"
+     },
+     {
+      "key": "MUL",
+      "name": "product_name",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(80)"
+     },
+     {
+      "key": "MUL",
+      "name": "category_id",
+      "nullable": false,
+      "references": {
+       "column": "category_id",
+       "table": "Categories"
+      },
+      "type": "int"
+     },
+     {
+      "key": "MUL",
+      "name": "supplier_id",
+      "nullable": false,
+      "references": {
+       "column": "supplier_id",
+       "table": "Suppliers"
+      },
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "unit_price",
+      "nullable": false,
+      "references": null,
+      "type": "decimal(10,2)"
+     },
+     {
+      "key": "",
+      "name": "stock_quantity",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "min_stock_level",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "expiry_date",
+      "nullable": true,
+      "references": null,
+      "type": "date"
+     },
+     {
+      "key": "",
+      "name": "description",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(150)"
+     },
+     {
+      "key": "",
+      "name": "photo",
+      "nullable": true,
+      "references": null,
+      "type": "mediumblob"
+     }
+    ],
+    "name": "Products"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "purchase_id",
+      "nullable": false,
+      "references": {
+       "column": "purchase_id",
+       "table": "Purchases"
+      },
+      "type": "int"
+     },
+     {
+      "key": "PRI",
+      "name": "product_id",
+      "nullable": false,
+      "references": {
+       "column": "product_id",
+       "table": "Products"
+      },
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "quantity",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "unit_cost",
+      "nullable": false,
+      "references": null,
+      "type": "decimal(10,2)"
+     }
+    ],
+    "name": "Purchase_Items"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "purchase_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "MUL",
+      "name": "supplier_id",
+      "nullable": false,
+      "references": {
+       "column": "supplier_id",
+       "table": "Suppliers"
+      },
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "purchase_date",
+      "nullable": false,
+      "references": null,
+      "type": "date"
+     },
+     {
+      "key": "",
+      "name": "total_amount",
+      "nullable": false,
+      "references": null,
+      "type": "decimal(12,2)"
+     }
+    ],
+    "name": "Purchases"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "sale_id",
+      "nullable": false,
+      "references": {
+       "column": "sale_id",
+       "table": "Sales"
+      },
+      "type": "int"
+     },
+     {
+      "key": "PRI",
+      "name": "product_id",
+      "nullable": false,
+      "references": {
+       "column": "product_id",
+       "table": "Products"
+      },
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "quantity",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "unit_price",
+      "nullable": false,
+      "references": null,
+      "type": "decimal(10,2)"
+     }
+    ],
+    "name": "Sale_Items"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "sale_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "MUL",
+      "name": "customer_id",
+      "nullable": false,
+      "references": {
+       "column": "customer_id",
+       "table": "Customers"
+      },
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "sale_date",
+      "nullable": false,
+      "references": null,
+      "type": "date"
+     },
+     {
+      "key": "",
+      "name": "total_amount",
+      "nullable": false,
+      "references": null,
+      "type": "decimal(12,2)"
+     }
+    ],
+    "name": "Sales"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "txn_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "MUL",
+      "name": "product_id",
+      "nullable": false,
+      "references": {
+       "column": "product_id",
+       "table": "Products"
+      },
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "txn_type",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(10)"
+     },
+     {
+      "key": "",
+      "name": "quantity_change",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "txn_date",
+      "nullable": false,
+      "references": null,
+      "type": "datetime"
+     },
+     {
+      "key": "",
+      "name": "reference_id",
+      "nullable": true,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "remarks",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(100)"
+     }
+    ],
+    "name": "Stock_Transactions"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "supplier_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "",
+      "name": "supplier_name",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(80)"
+     },
+     {
+      "key": "",
+      "name": "contact_person",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(60)"
+     },
+     {
+      "key": "UNI",
+      "name": "phone",
+      "nullable": false,
+      "references": null,
+      "type": "char(10)"
+     },
+     {
+      "key": "UNI",
+      "name": "email",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(80)"
+     },
+     {
+      "key": "",
+      "name": "city",
+      "nullable": true,
+      "references": null,
+      "type": "varchar(40)"
+     }
+    ],
+    "name": "Suppliers"
+   },
+   {
+    "columns": [
+     {
+      "key": "PRI",
+      "name": "user_id",
+      "nullable": false,
+      "references": null,
+      "type": "int"
+     },
+     {
+      "key": "UNI",
+      "name": "username",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(40)"
+     },
+     {
+      "key": "",
+      "name": "password_hash",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(140)"
+     },
+     {
+      "key": "",
+      "name": "role",
+      "nullable": false,
+      "references": null,
+      "type": "varchar(10)"
+     },
+     {
+      "key": "",
+      "name": "created_at",
+      "nullable": false,
+      "references": null,
+      "type": "datetime"
+     }
+    ],
+    "name": "Users"
+   }
+  ]
+ },
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 4.583917,
+   "result": {
+    "columns": [
+     "table_name",
+     "column_name",
+     "column_type",
+     "is_nullable",
+     "column_key"
+    ],
+    "rows": [
+     [
+      "Categories",
+      "category_id",
+      "int",
+      "NO",
+      "PRI"
+     ],
+     [
+      "Categories",
+      "category_name",
+      "varchar(50)",
+      "NO",
+      "UNI"
+     ],
+     [
+      "Categories",
+      "description",
+      "varchar(150)",
+      "YES",
+      ""
+     ],
+     [
+      "Customers",
+      "customer_id",
+      "int",
+      "NO",
+      "PRI"
+     ],
+     [
+      "Customers",
+      "customer_name",
+      "varchar(80)",
+      "NO",
+      ""
+     ]
+    ],
+    "total": 54
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name, COLUMN_TYPE AS column_type, IS_NULLABLE AS is_nullable, COLUMN_KEY AS column_key FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN (SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_TYPE = 'BASE TABLE') ORDER BY TABLE_NAME, ORDINAL_POSITION",
+   "triggers": []
+  },
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 1.5025,
+   "result": {
+    "columns": [
+     "table_name",
+     "column_name",
+     "ref_table",
+     "ref_column"
+    ],
+    "rows": [
+     [
+      "Products",
+      "category_id",
+      "Categories",
+      "category_id"
+     ],
+     [
+      "Products",
+      "supplier_id",
+      "Suppliers",
+      "supplier_id"
+     ],
+     [
+      "Purchase_Items",
+      "product_id",
+      "Products",
+      "product_id"
+     ],
+     [
+      "Purchase_Items",
+      "purchase_id",
+      "Purchases",
+      "purchase_id"
+     ],
+     [
+      "Purchases",
+      "supplier_id",
+      "Suppliers",
+      "supplier_id"
+     ]
+    ],
+    "total": 9
+   },
+   "rows_affected": null,
+   "seq": 2,
+   "sql": "SELECT TABLE_NAME AS table_name, COLUMN_NAME AS column_name, REFERENCED_TABLE_NAME AS ref_table, REFERENCED_COLUMN_NAME AS ref_column FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL",
+   "triggers": []
+  }
+ ]
+}

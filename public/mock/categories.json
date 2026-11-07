@@ -1,0 +1,95 @@
+{
+ "data": [
+  {
+   "category_id": 4,
+   "category_name": "Beverages",
+   "description": "Drinks and juices",
+   "product_count": 10
+  },
+  {
+   "category_id": 2,
+   "category_name": "Electronics",
+   "description": "Small electronic accessories",
+   "product_count": 10
+  },
+  {
+   "category_id": 3,
+   "category_name": "Groceries",
+   "description": "Packaged food items",
+   "product_count": 10
+  },
+  {
+   "category_id": 6,
+   "category_name": "Household",
+   "description": "Cleaning and home items",
+   "product_count": 10
+  },
+  {
+   "category_id": 5,
+   "category_name": "Personal Care",
+   "description": "Soaps and hygiene",
+   "product_count": 10
+  },
+  {
+   "category_id": 1,
+   "category_name": "Stationery",
+   "description": "Pens, notebooks, paper",
+   "product_count": 10
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.687291,
+   "result": {
+    "columns": [
+     "category_id",
+     "category_name",
+     "description",
+     "product_count"
+    ],
+    "rows": [
+     [
+      "4",
+      "Beverages",
+      "Drinks and juices",
+      "10"
+     ],
+     [
+      "2",
+      "Electronics",
+      "Small electronic accessories",
+      "10"
+     ],
+     [
+      "3",
+      "Groceries",
+      "Packaged food items",
+      "10"
+     ],
+     [
+      "6",
+      "Household",
+      "Cleaning and home items",
+      "10"
+     ],
+     [
+      "5",
+      "Personal Care",
+      "Soaps and hygiene",
+      "10"
+     ]
+    ],
+    "total": 6
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT c.category_id, c.category_name, c.description, COUNT(p.product_id) AS product_count FROM Categories c LEFT JOIN Products p ON p.category_id = c.category_id GROUP BY c.category_id, c.category_name, c.description ORDER BY c.category_name",
+   "triggers": []
+  }
+ ]
+}

@@ -1,0 +1,27 @@
+# Render Blueprint: one Docker web service. Values marked sync:false are typed into the Render dashboard,
+# so no password or certificate is ever stored in this repository.
+services:
+  - type: web
+    name: inventory
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /api/health
+    envVars:
+      - key: DB_HOST          # Aiven service host
+        sync: false
+      - key: DB_PORT          # Aiven service port
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL_CA_PEM    # contents of the Aiven CA certificate (ca.pem)
+        sync: false
+      - key: COOKIE_SECURE
+        value: "1"
+      - key: SHOP_NAME
+        value: Inventory Store

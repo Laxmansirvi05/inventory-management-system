@@ -1,0 +1,4 @@
+build/
+.env
+*.pem
+.DS_Store

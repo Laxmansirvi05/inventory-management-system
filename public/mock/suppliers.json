@@ -1,0 +1,111 @@
+{
+ "data": [
+  {
+   "city": "Secunderabad",
+   "contact_person": "Imran Khan",
+   "email": "deccan@example.com",
+   "phone": "9848011003",
+   "supplier_id": 3,
+   "supplier_name": "Deccan Distributors"
+  },
+  {
+   "city": "Warangal",
+   "contact_person": "Suresh Kumar",
+   "email": "krishna@example.com",
+   "phone": "9848011004",
+   "supplier_id": 4,
+   "supplier_name": "Krishna Supplies"
+  },
+  {
+   "city": "Hyderabad",
+   "contact_person": "Anita Sharma",
+   "email": "metro@example.com",
+   "phone": "9848011002",
+   "supplier_id": 2,
+   "supplier_name": "Metro Wholesale"
+  },
+  {
+   "city": "Hyderabad",
+   "contact_person": "Ramesh Rao",
+   "email": "balaji@example.com",
+   "phone": "9848011001",
+   "supplier_id": 1,
+   "supplier_name": "Sri Balaji Traders"
+  },
+  {
+   "city": "Hyderabad",
+   "contact_person": "Priya Reddy",
+   "email": "valuemart@example.com",
+   "phone": "9848011005",
+   "supplier_id": 5,
+   "supplier_name": "Value Mart Agencies"
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.376042,
+   "result": {
+    "columns": [
+     "supplier_id",
+     "supplier_name",
+     "contact_person",
+     "phone",
+     "email",
+     "city"
+    ],
+    "rows": [
+     [
+      "3",
+      "Deccan Distributors",
+      "Imran Khan",
+      "9848011003",
+      "deccan@example.com",
+      "Secunderabad"
+     ],
+     [
+      "4",
+      "Krishna Supplies",
+      "Suresh Kumar",
+      "9848011004",
+      "krishna@example.com",
+      "Warangal"
+     ],
+     [
+      "2",
+      "Metro Wholesale",
+      "Anita Sharma",
+      "9848011002",
+      "metro@example.com",
+      "Hyderabad"
+     ],
+     [
+      "1",
+      "Sri Balaji Traders",
+      "Ramesh Rao",
+      "9848011001",
+      "balaji@example.com",
+      "Hyderabad"
+     ],
+     [
+      "5",
+      "Value Mart Agencies",
+      "Priya Reddy",
+      "9848011005",
+      "valuemart@example.com",
+      "Hyderabad"
+     ]
+    ],
+    "total": 5
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT supplier_id, supplier_name, contact_person, phone, email, city FROM Suppliers ORDER BY supplier_name",
+   "triggers": []
+  }
+ ]
+}

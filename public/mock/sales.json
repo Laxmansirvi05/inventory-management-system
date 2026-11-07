@@ -1,0 +1,279 @@
+{
+ "data": [
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 1,
+   "sale_date": "2026-11-07",
+   "sale_id": 26,
+   "total_amount": 70.0,
+   "units_sold": 2
+  },
+  {
+   "customer_name": "Aarav Iyer",
+   "item_lines": 3,
+   "sale_date": "2026-06-13",
+   "sale_id": 25,
+   "total_amount": 18824.0,
+   "units_sold": 176
+  },
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 4,
+   "sale_date": "2026-06-08",
+   "sale_id": 24,
+   "total_amount": 10910.0,
+   "units_sold": 459
+  },
+  {
+   "customer_name": "Aarav Iyer",
+   "item_lines": 2,
+   "sale_date": "2026-06-03",
+   "sale_id": 23,
+   "total_amount": 6342.0,
+   "units_sold": 130
+  },
+  {
+   "customer_name": "Divya Das",
+   "item_lines": 3,
+   "sale_date": "2026-06-25",
+   "sale_id": 22,
+   "total_amount": 22795.0,
+   "units_sold": 79
+  },
+  {
+   "customer_name": "Varun Patel",
+   "item_lines": 3,
+   "sale_date": "2026-06-20",
+   "sale_id": 21,
+   "total_amount": 4657.0,
+   "units_sold": 139
+  },
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 1,
+   "sale_date": "2026-05-15",
+   "sale_id": 20,
+   "total_amount": 30.0,
+   "units_sold": 3
+  },
+  {
+   "customer_name": "Diya Sharma",
+   "item_lines": 3,
+   "sale_date": "2026-05-10",
+   "sale_id": 19,
+   "total_amount": 1570.0,
+   "units_sold": 8
+  },
+  {
+   "customer_name": "Kavya Reddy",
+   "item_lines": 1,
+   "sale_date": "2026-05-05",
+   "sale_id": 18,
+   "total_amount": 84.0,
+   "units_sold": 6
+  },
+  {
+   "customer_name": "Divya Das",
+   "item_lines": 3,
+   "sale_date": "2026-05-27",
+   "sale_id": 17,
+   "total_amount": 1115.0,
+   "units_sold": 13
+  },
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 2,
+   "sale_date": "2026-05-22",
+   "sale_id": 16,
+   "total_amount": 455.0,
+   "units_sold": 9
+  },
+  {
+   "customer_name": "Kavya Reddy",
+   "item_lines": 1,
+   "sale_date": "2026-04-17",
+   "sale_id": 15,
+   "total_amount": 192.0,
+   "units_sold": 4
+  },
+  {
+   "customer_name": "Rahul Das",
+   "item_lines": 3,
+   "sale_date": "2026-04-12",
+   "sale_id": 14,
+   "total_amount": 832.0,
+   "units_sold": 10
+  },
+  {
+   "customer_name": "Aarav Iyer",
+   "item_lines": 2,
+   "sale_date": "2026-04-07",
+   "sale_id": 13,
+   "total_amount": 620.0,
+   "units_sold": 10
+  },
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 3,
+   "sale_date": "2026-04-02",
+   "sale_id": 12,
+   "total_amount": 5585.0,
+   "units_sold": 15
+  },
+  {
+   "customer_name": "Meera Patel",
+   "item_lines": 3,
+   "sale_date": "2026-04-24",
+   "sale_id": 11,
+   "total_amount": 1491.0,
+   "units_sold": 15
+  },
+  {
+   "customer_name": "Arjun Sharma",
+   "item_lines": 3,
+   "sale_date": "2026-03-19",
+   "sale_id": 10,
+   "total_amount": 1650.0,
+   "units_sold": 16
+  },
+  {
+   "customer_name": "Karthik Reddy",
+   "item_lines": 3,
+   "sale_date": "2026-03-14",
+   "sale_id": 9,
+   "total_amount": 944.0,
+   "units_sold": 8
+  },
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 3,
+   "sale_date": "2026-03-09",
+   "sale_id": 8,
+   "total_amount": 1104.0,
+   "units_sold": 12
+  },
+  {
+   "customer_name": "Kavya Reddy",
+   "item_lines": 2,
+   "sale_date": "2026-03-04",
+   "sale_id": 7,
+   "total_amount": 1267.0,
+   "units_sold": 5
+  },
+  {
+   "customer_name": "Divya Das",
+   "item_lines": 3,
+   "sale_date": "2026-03-26",
+   "sale_id": 6,
+   "total_amount": 932.0,
+   "units_sold": 18
+  },
+  {
+   "customer_name": "Sai Kumar",
+   "item_lines": 1,
+   "sale_date": "2026-02-21",
+   "sale_id": 5,
+   "total_amount": 190.0,
+   "units_sold": 5
+  },
+  {
+   "customer_name": "Walk-in Customer",
+   "item_lines": 3,
+   "sale_date": "2026-02-16",
+   "sale_id": 4,
+   "total_amount": 472.0,
+   "units_sold": 7
+  },
+  {
+   "customer_name": "Vivaan Patel",
+   "item_lines": 1,
+   "sale_date": "2026-02-11",
+   "sale_id": 3,
+   "total_amount": 30.0,
+   "units_sold": 3
+  },
+  {
+   "customer_name": "Rahul Das",
+   "item_lines": 1,
+   "sale_date": "2026-02-06",
+   "sale_id": 2,
+   "total_amount": 510.0,
+   "units_sold": 6
+  },
+  {
+   "customer_name": "Vivaan Patel",
+   "item_lines": 1,
+   "sale_date": "2026-02-01",
+   "sale_id": 1,
+   "total_amount": 240.0,
+   "units_sold": 4
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 1.684708,
+   "result": {
+    "columns": [
+     "sale_id",
+     "sale_date",
+     "customer_name",
+     "total_amount",
+     "item_lines",
+     "units_sold"
+    ],
+    "rows": [
+     [
+      "26",
+      "2026-11-07",
+      "Walk-in Customer",
+      "70.00",
+      "1",
+      "2"
+     ],
+     [
+      "25",
+      "2026-06-13",
+      "Aarav Iyer",
+      "18824.00",
+      "3",
+      "176"
+     ],
+     [
+      "24",
+      "2026-06-08",
+      "Walk-in Customer",
+      "10910.00",
+      "4",
+      "459"
+     ],
+     [
+      "23",
+      "2026-06-03",
+      "Aarav Iyer",
+      "6342.00",
+      "2",
+      "130"
+     ],
+     [
+      "22",
+      "2026-06-25",
+      "Divya Das",
+      "22795.00",
+      "3",
+      "79"
+     ]
+    ],
+    "total": 26
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT sale_id, sale_date, customer_name, total_amount, item_lines, units_sold FROM v_sales_summary ORDER BY sale_id DESC LIMIT 50",
+   "triggers": []
+  }
+ ]
+}

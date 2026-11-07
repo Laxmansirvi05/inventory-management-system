@@ -1,0 +1,39 @@
+{
+ "data": {
+  "low_stock": 6,
+  "products": 60,
+  "sales_this_month": {
+   "orders": 1,
+   "revenue": 70.0
+  },
+  "stock_value": 753914.0,
+  "undo_depth": 1
+ },
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.354,
+   "result": {
+    "columns": [
+     "orders",
+     "revenue"
+    ],
+    "rows": [
+     [
+      "1",
+      "70.00"
+     ]
+    ],
+    "total": 1
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT COUNT(*) AS orders, COALESCE(SUM(total_amount), 0) AS revenue FROM Sales WHERE sale_date >= '2026-11-01'",
+   "triggers": []
+  }
+ ]
+}

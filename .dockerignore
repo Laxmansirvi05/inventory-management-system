@@ -1,0 +1,9 @@
+build/
+.git/
+.env
+*.pem
+docs/
+sql/
+scripts/
+README.md
+.DS_Store

@@ -1,0 +1,84 @@
+{
+ "data": {
+  "lines": [
+   {
+    "line_total": 70.0,
+    "product_name": "Notebook 100 Pages",
+    "quantity": 2,
+    "sku": "SKU0006",
+    "unit_price": 35.0
+   }
+  ],
+  "sale": {
+   "customer_name": "Walk-in Customer",
+   "phone": "9000000000",
+   "sale_date": "2026-11-07",
+   "sale_id": 26,
+   "total_amount": 70.0
+  },
+  "shop": "Inventory Store"
+ },
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.423916,
+   "result": {
+    "columns": [
+     "sale_id",
+     "sale_date",
+     "total_amount",
+     "customer_name",
+     "phone"
+    ],
+    "rows": [
+     [
+      "26",
+      "2026-11-07",
+      "70.00",
+      "Walk-in Customer",
+      "9000000000"
+     ]
+    ],
+    "total": 1
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT s.sale_id, s.sale_date, s.total_amount, c.customer_name, c.phone FROM Sales s JOIN Customers c ON c.customer_id = s.customer_id WHERE s.sale_id = 26",
+   "triggers": []
+  },
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.429334,
+   "result": {
+    "columns": [
+     "sku",
+     "product_name",
+     "quantity",
+     "unit_price",
+     "line_total"
+    ],
+    "rows": [
+     [
+      "SKU0006",
+      "Notebook 100 Pages",
+      "2",
+      "35.00",
+      "70.00"
+     ]
+    ],
+    "total": 1
+   },
+   "rows_affected": null,
+   "seq": 2,
+   "sql": "SELECT p.sku, p.product_name, si.quantity, si.unit_price, si.quantity * si.unit_price AS line_total FROM Sale_Items si JOIN Products p ON p.product_id = si.product_id WHERE si.sale_id = 26 ORDER BY p.product_name",
+   "triggers": []
+  }
+ ]
+}

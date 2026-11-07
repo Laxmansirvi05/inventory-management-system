@@ -1,0 +1,231 @@
+{
+ "data": [
+  {
+   "city": "Secunderabad",
+   "customer_id": 2,
+   "customer_name": "Aarav Iyer",
+   "email": "aarav.iyer@example.com",
+   "phone": "9850000000",
+   "registered_on": "2026-02-04"
+  },
+  {
+   "city": "Warangal",
+   "customer_id": 5,
+   "customer_name": "Ananya Sharma",
+   "email": "ananya.sharma@example.com",
+   "phone": "9850003351",
+   "registered_on": "2026-05-13"
+  },
+  {
+   "city": "Secunderabad",
+   "customer_id": 10,
+   "customer_name": "Arjun Sharma",
+   "email": "arjun.sharma@example.com",
+   "phone": "9850008936",
+   "registered_on": "2026-01-01"
+  },
+  {
+   "city": "Hyderabad",
+   "customer_id": 13,
+   "customer_name": "Divya Das",
+   "email": "divya.das@example.com",
+   "phone": "9850012287",
+   "registered_on": "2026-04-10"
+  },
+  {
+   "city": "Guntur",
+   "customer_id": 4,
+   "customer_name": "Diya Sharma",
+   "email": "diya.sharma@example.com",
+   "phone": "9850002234",
+   "registered_on": "2026-04-10"
+  },
+  {
+   "city": "Guntur",
+   "customer_id": 18,
+   "customer_name": "Harsha Reddy",
+   "email": "harsha.reddy@example.com",
+   "phone": "9850017872",
+   "registered_on": "2026-09-25"
+  },
+  {
+   "city": "Hyderabad",
+   "customer_id": 8,
+   "customer_name": "Karthik Reddy",
+   "email": "karthik.reddy@example.com",
+   "phone": "9850006702",
+   "registered_on": "2026-08-22"
+  },
+  {
+   "city": "Secunderabad",
+   "customer_id": 17,
+   "customer_name": "Kavya Reddy",
+   "email": "kavya.reddy@example.com",
+   "phone": "9850016755",
+   "registered_on": "2026-08-22"
+  },
+  {
+   "city": "Guntur",
+   "customer_id": 15,
+   "customer_name": "Lakshmi Reddy",
+   "email": "lakshmi.reddy@example.com",
+   "phone": "9850014521",
+   "registered_on": "2026-06-16"
+  },
+  {
+   "city": "Vijayawada",
+   "customer_id": 9,
+   "customer_name": "Meera Patel",
+   "email": "meera.patel@example.com",
+   "phone": "9850007819",
+   "registered_on": "2026-09-25"
+  },
+  {
+   "city": "Hyderabad",
+   "customer_id": 12,
+   "customer_name": "Nikhil Patel",
+   "email": "nikhil.patel@example.com",
+   "phone": "9850011170",
+   "registered_on": "2026-03-07"
+  },
+  {
+   "city": "Guntur",
+   "customer_id": 11,
+   "customer_name": "Pooja Sharma",
+   "email": "pooja.sharma@example.com",
+   "phone": "9850010053",
+   "registered_on": "2026-02-04"
+  },
+  {
+   "city": "Vijayawada",
+   "customer_id": 16,
+   "customer_name": "Rahul Das",
+   "email": "rahul.das@example.com",
+   "phone": "9850015638",
+   "registered_on": "2026-07-19"
+  },
+  {
+   "city": "Hyderabad",
+   "customer_id": 6,
+   "customer_name": "Rohit Das",
+   "email": "rohit.das@example.com",
+   "phone": "9850004468",
+   "registered_on": "2026-06-16"
+  },
+  {
+   "city": "Guntur",
+   "customer_id": 14,
+   "customer_name": "Sai Kumar",
+   "email": "sai.kumar@example.com",
+   "phone": "9850013404",
+   "registered_on": "2026-05-13"
+  },
+  {
+   "city": "Secunderabad",
+   "customer_id": 7,
+   "customer_name": "Sneha Singh",
+   "email": "sneha.singh@example.com",
+   "phone": "9850005585",
+   "registered_on": "2026-07-19"
+  },
+  {
+   "city": "Warangal",
+   "customer_id": 19,
+   "customer_name": "Swathi Rao",
+   "email": "swathi.rao@example.com",
+   "phone": "9850018989",
+   "registered_on": "2026-01-01"
+  },
+  {
+   "city": "Secunderabad",
+   "customer_id": 20,
+   "customer_name": "Varun Patel",
+   "email": "varun.patel@example.com",
+   "phone": "9850020106",
+   "registered_on": "2026-02-04"
+  },
+  {
+   "city": "Hyderabad",
+   "customer_id": 3,
+   "customer_name": "Vivaan Patel",
+   "email": "vivaan.patel@example.com",
+   "phone": "9850001117",
+   "registered_on": "2026-03-07"
+  },
+  {
+   "city": "Hyderabad",
+   "customer_id": 1,
+   "customer_name": "Walk-in Customer",
+   "email": null,
+   "phone": "9000000000",
+   "registered_on": "2026-01-01"
+  }
+ ],
+ "ok": true,
+ "sql_log": [
+  {
+   "after": null,
+   "before": null,
+   "error": null,
+   "kind": "DQL",
+   "ms": 0.413333,
+   "result": {
+    "columns": [
+     "customer_id",
+     "customer_name",
+     "phone",
+     "email",
+     "city",
+     "registered_on"
+    ],
+    "rows": [
+     [
+      "2",
+      "Aarav Iyer",
+      "9850000000",
+      "aarav.iyer@example.com",
+      "Secunderabad",
+      "2026-02-04"
+     ],
+     [
+      "5",
+      "Ananya Sharma",
+      "9850003351",
+      "ananya.sharma@example.com",
+      "Warangal",
+      "2026-05-13"
+     ],
+     [
+      "10",
+      "Arjun Sharma",
+      "9850008936",
+      "arjun.sharma@example.com",
+      "Secunderabad",
+      "2026-01-01"
+     ],
+     [
+      "13",
+      "Divya Das",
+      "9850012287",
+      "divya.das@example.com",
+      "Hyderabad",
+      "2026-04-10"
+     ],
+     [
+      "4",
+      "Diya Sharma",
+      "9850002234",
+      "diya.sharma@example.com",
+      "Guntur",
+      "2026-04-10"
+     ]
+    ],
+    "total": 20
+   },
+   "rows_affected": null,
+   "seq": 1,
+   "sql": "SELECT customer_id, customer_name, phone, email, city, registered_on FROM Customers ORDER BY customer_name",
+   "triggers": []
+  }
+ ]
+}
