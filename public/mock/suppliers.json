@@ -49,7 +49,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 0.337292,
+   "ms": 0.265834,
    "result": {
     "columns": [
      "supplier_id",

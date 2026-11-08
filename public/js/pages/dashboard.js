@@ -36,11 +36,26 @@ IMS.boot(async (content, user) => {
   }
 
   // one stat card
-  const stat = (label, value, sub) => h('div', { class: 'card stat' }, h('div', { class: 'label' }, label), h('div', { class: 'value' }, value), h('div', { class: 'sub' }, sub));
+  const stat = (label, value, sub, icon, tone) => h('div', { class: 'card stat' + (tone ? ' s-' + tone : '') },
+    h('div', { class: 'label' }, label), h('div', { class: 'value' }, value), h('div', { class: 'sub' }, sub), h('div', { class: 'ico' }, IMS.ui.icon(icon)));
+  const catBars = h('div', { class: 'bars' });
+
+  // stock value per category as horizontal bars (the "stock-value" report, one GROUP BY query)
+  function drawCategories(rows) {
+    IMS.ui.clear(catBars);
+    if (!rows.length) { catBars.appendChild(h('div', { class: 'empty' }, 'No products yet')); return; }
+    const top = Math.max(...rows.map((r) => Number(r.stock_value) || 0)) || 1;
+    for (const r of rows) {
+      catBars.appendChild(h('div', { class: 'row' },
+        h('b', {}, r.category_name),
+        h('div', { class: 'track2', title: f.int(r.units) + ' units in ' + f.int(r.products) + ' products' }, h('div', { class: 'fill', style: 'width:' + Math.max(2, (Number(r.stock_value) / top) * 100).toFixed(1) + '%' })),
+        h('span', { class: 'amt' }, f.money(r.stock_value))));
+    }
+  }
 
   // load all three data sets and redraw
   async function refresh() {
-    const [dash, alerts, txns] = await Promise.all([IMS.api.get('/api/dashboard'), IMS.api.get('/api/alerts/low-stock'), IMS.api.get('/api/transactions/recent')]);
+    const [dash, alerts, txns, cats] = await Promise.all([IMS.api.get('/api/dashboard'), IMS.api.get('/api/alerts/low-stock'), IMS.api.get('/api/transactions/recent'), IMS.api.get('/api/reports/stock-value')]);
     if (!dash.ok) { IMS.ui.toast(IMS.api.message(dash), 'error'); return; }
     const d = dash.data;
     IMS.ui.clear(syncBox);
@@ -50,16 +65,19 @@ IMS.boot(async (content, user) => {
         user.role === 'ADMIN' ? IMS.ui.btn('Reload from database', { small: true, onClick: reload }) : 'Ask an administrator to reload.'));
     }
     IMS.ui.clear(cards).append(
-      stat('Products', f.int(d.products), 'in catalogue'),
-      stat('Stock value', f.money(d.stock_value), 'at selling price'),
-      stat('Sales this month', f.money(d.sales_this_month.revenue), f.int(d.sales_this_month.orders) + ' orders'),
-      stat('Low stock', f.int(d.low_stock), d.low_stock ? 'need restocking' : 'all good'));
+      stat('Products', f.int(d.products), f.int(d.units) + ' units in stock', 'box'),
+      stat('Stock value', f.money(d.stock_value), 'at selling price', 'rupee', 'tape'),
+      stat('Sales this month', f.money(d.sales_this_month.revenue), f.int(d.sales_this_month.orders) + (d.sales_this_month.orders === 1 ? ' order' : ' orders'), 'trend', 'ok'),
+      stat('Low stock', f.int(d.low_stock), d.low_stock ? 'products need restocking' : 'everything above minimum', 'alert', d.low_stock ? 'bad' : 'ok'));
     if (alerts.ok) alertTable.setRows(alerts.data);
     if (txns.ok) txnTable.setRows(txns.data);
+    if (cats.ok && cats.data && Array.isArray(cats.data.rows)) drawCategories(cats.data.rows);
   }
 
-  content.append(syncBox, cards, h('div', { class: 'grid-2' },
-    h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Restock alerts'), IMS.ui.ads('Priority queue')), alertTable.el),
+  content.append(syncBox, cards, h('div', { class: 'grid-dash' },
+    h('div', { class: 'stack' },
+      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Restock alerts'), IMS.ui.ads('Priority queue')), alertTable.el),
+      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Stock value by category'), h('span', { class: 'muted' }, 'at selling price')), catBars)),
     h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Recent stock transactions'), IMS.ui.ads('Stack'),
       user.role === 'ADMIN' ? IMS.ui.btn('Undo last', { small: true, title: 'Removes the newest sale or purchase made since the server started and puts its stock back', onClick: undo }) : null), txnTable.el)));
   await refresh();

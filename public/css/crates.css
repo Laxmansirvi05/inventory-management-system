@@ -1,0 +1,62 @@
+/* crates.css : the 3D cardboard boxes and pallet shared by the landing page and the sign-in page.
+   A box is .box (placed with --x --y --z, turned --r, sized --w --h --d) holding .shade and .box-in with six .f faces. */
+:root { --tape: #ffc72c; --ink: #101b33; --muted: #53607a; --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+/* a box: --w wide, --h tall, --d deep, centred at --x --y --z and turned --r */
+.box { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d; transform: translate3d(var(--x), var(--y), var(--z)) rotateY(var(--r)); }
+.box-in { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-style: preserve-3d;
+  animation: drop 1.15s cubic-bezier(.2, 1.25, .35, 1) var(--t) both, bob 9s ease-in-out calc(var(--t) + 1.4s) infinite; }
+@keyframes drop { from { transform: translateY(-640px) rotateX(-28deg) rotateZ(10deg); } to { transform: none; } }
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+.pallet .box-in { animation: none; }
+.shade { position: absolute; left: calc(var(--w) * -.7); top: calc(var(--d) * -.7); width: calc(var(--w) * 1.4); height: calc(var(--d) * 1.4);
+  transform: translateY(calc(var(--h) / 2 - .5px)) rotateX(90deg); border-radius: 30%;
+  background: radial-gradient(closest-side, rgba(16, 27, 51, .42), rgba(16, 27, 51, .16) 62%, transparent);
+  animation: shade-in 1.15s ease-out var(--t) both; }
+@keyframes shade-in { from { opacity: 0; scale: .35; } to { opacity: 1; scale: 1; } }
+
+.f { position: absolute; overflow: hidden; backface-visibility: hidden;
+  box-shadow: inset 0 0 0 1px rgba(92, 58, 22, .45), inset 0 0 22px rgba(92, 58, 22, .18); }
+.f.fr, .f.bk { width: var(--w); height: var(--h); left: calc(var(--w) / -2); top: calc(var(--h) / -2); }
+.f.rt, .f.lf { width: var(--d); height: var(--h); left: calc(var(--d) / -2); top: calc(var(--h) / -2); }
+.f.tp, .f.bt { width: var(--w); height: var(--d); left: calc(var(--w) / -2); top: calc(var(--d) / -2); }
+.f.fr { transform: translateZ(calc(var(--d) / 2)); }
+.f.bk { transform: rotateY(180deg) translateZ(calc(var(--d) / 2)); }
+.f.rt { transform: rotateY(90deg) translateZ(calc(var(--w) / 2)); }
+.f.lf { transform: rotateY(-90deg) translateZ(calc(var(--w) / 2)); }
+.f.tp { transform: rotateX(90deg) translateZ(calc(var(--h) / 2)); }
+.f.bt { transform: rotateX(-90deg) translateZ(calc(var(--h) / 2)); }
+/* cardboard: faint flutes, light from the upper left, a little dirt toward the floor */
+.box .f { background:
+  repeating-linear-gradient(90deg, rgba(80, 48, 16, .06) 0 1px, transparent 1px 6px),
+  linear-gradient(180deg, rgba(255, 255, 255, .1), transparent 40%, rgba(60, 34, 10, .2)), var(--c); }
+.box .f.tp { --c: #e2bd88; background: repeating-linear-gradient(0deg, rgba(80, 48, 16, .05) 0 1px, transparent 1px 6px),
+  linear-gradient(135deg, rgba(255, 255, 255, .28), transparent 55%), var(--c); }
+.box .f.fr { --c: #caa06a; }
+.box .f.rt { --c: #a97c4b; }
+.box .f.lf, .box .f.bk { --c: #94693e; }
+.box .f.bt { --c: #6e4c2b; }
+/* the flap seam under the tape */
+.box .f.tp::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: rgba(92, 58, 22, .35); }
+
+.tape { position: absolute; top: 0; bottom: 0; left: 50%; width: 22%; transform: translateX(-50%);
+  background: linear-gradient(90deg, rgba(0, 0, 0, .08), transparent 25%, rgba(255, 255, 255, .35) 45%, transparent 60%, rgba(0, 0, 0, .1)), var(--tape);
+  box-shadow: 0 0 0 1px rgba(140, 95, 0, .3); }
+.f.rt .tape, .f.fr .tape { filter: brightness(.92); }
+.tape.cross { top: 50%; bottom: auto; left: 0; width: 100%; height: 22%; transform: translateY(-50%); }
+.tape.tail { bottom: auto; height: 30%;
+  clip-path: polygon(0 0, 100% 0, 100% 92%, 88% 100%, 72% 93%, 55% 100%, 38% 92%, 20% 100%, 0 94%); }
+.label { position: absolute; left: 8%; bottom: 10%; width: 46%; padding: 6px 7px 5px; display: grid; background: #fbfaf6; border-radius: 2px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, .18), inset 0 0 0 1px rgba(16, 27, 51, .12); font: 700 9.5px/1.25 var(--mono); color: var(--ink); }
+.label span + span { font-weight: 500; color: var(--muted); }
+.label i { display: block; height: 15px; margin-top: 4px; background: repeating-linear-gradient(90deg, var(--ink) 0 2px, transparent 2px 3px, var(--ink) 3px 4px, transparent 4px 7px, var(--ink) 7px 10px, transparent 10px 11px); }
+.label.sm { width: 52%; }
+.arrows { position: absolute; right: 12%; top: 40%; display: flex; gap: 5px; }
+.arrows i { width: 12px; height: 22px; background: rgba(60, 34, 10, .55); clip-path: polygon(50% 0, 100% 45%, 66% 45%, 66% 100%, 34% 100%, 34% 45%, 0 45%); }
+
+/* wooden pallet under the big stack */
+.pallet .f { box-shadow: inset 0 0 0 1px rgba(70, 45, 20, .45); }
+.pallet .f.tp { background: repeating-linear-gradient(90deg, #c8a77a 0 34px, #8c6a44 34px 40px); }
+.pallet .f.fr, .pallet .f.bk { background: linear-gradient(#b8956a 0 32%, transparent 32%),
+  linear-gradient(90deg, #a6845b 0 12%, #2c2418 12% 44%, #a6845b 44% 56%, #2c2418 56% 88%, #a6845b 88%); }
+.pallet .f.rt, .pallet .f.lf { background: linear-gradient(#a07d54 0 32%, transparent 32%),
+  linear-gradient(90deg, #8e6d47 0 12%, #241d14 12% 44%, #8e6d47 44% 56%, #241d14 56% 88%, #8e6d47 88%); }

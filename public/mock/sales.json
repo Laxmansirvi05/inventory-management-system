@@ -217,7 +217,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 1.751958,
+   "ms": 1.516917,
    "result": {
     "columns": [
      "sale_id",

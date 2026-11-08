@@ -4,9 +4,88 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sign in · Inventory</title>
-<link rel="stylesheet" href="css/style.css">
+<meta name="description" content="Sign in to your Inventory workspace.">
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/crates.css">
+<link rel="stylesheet" href="css/login.css">
 </head>
-<body>
+<body class="login">
+
+<main class="split">
+  <!-- left: the stockroom at night, lit by one lamp -->
+  <section class="dock" aria-hidden="true">
+    <div class="beam"></div>
+    <div class="lscene" id="scene">
+      <div class="stage" id="stage">
+        <div class="floor"></div>
+        <div class="box pallet" style="--w:250px;--h:22px;--d:200px;--x:-40px;--y:139px;--z:0px;--r:8deg;--t:.05s">
+          <i class="shade"></i>
+          <div class="box-in"><div class="f fr"></div><div class="f bk"></div><div class="f rt"></div><div class="f lf"></div><div class="f tp"></div></div>
+        </div>
+        <div class="box" style="--w:184px;--h:150px;--d:152px;--x:-40px;--y:53px;--z:0px;--r:8deg;--t:.3s">
+          <i class="shade"></i>
+          <div class="box-in"><div class="f fr"><b class="tape tail"></b><b class="label"><span>SKU 0042</span><span>Notebooks</span><i></i></b></div><div class="f bk"><b class="tape tail"></b></div><div class="f rt"><b class="arrows"><i></i><i></i></b></div><div class="f lf"></div><div class="f tp"><b class="tape"></b></div><div class="f bt"></div></div>
+        </div>
+        <div class="box" style="--w:126px;--h:96px;--d:108px;--x:-48px;--y:-70px;--z:6px;--r:-12deg;--t:.75s">
+          <i class="shade"></i>
+          <div class="box-in"><div class="f fr"><b class="tape tail"></b><b class="label sm"><span>SKU 0008</span><i></i></b></div><div class="f bk"><b class="tape tail"></b></div><div class="f rt"></div><div class="f lf"></div><div class="f tp"><b class="tape"></b><b class="tape cross"></b></div><div class="f bt"></div></div>
+        </div>
+        <div class="box" style="--w:150px;--h:112px;--d:128px;--x:235px;--y:94px;--z:90px;--r:-6deg;--t:.5s">
+          <i class="shade"></i>
+          <div class="box-in"><div class="f fr"><b class="tape tail"></b><b class="label"><span>SKU 0117</span><span>Gel pens</span><i></i></b></div><div class="f bk"><b class="tape tail"></b></div><div class="f rt"><b class="arrows"><i></i><i></i></b></div><div class="f lf"></div><div class="f tp"><b class="tape"></b></div><div class="f bt"></div></div>
+        </div>
+        <div class="box" style="--w:96px;--h:74px;--d:84px;--x:-250px;--y:113px;--z:120px;--r:22deg;--t:.95s">
+          <i class="shade"></i>
+          <div class="box-in"><div class="f fr"><b class="tape tail"></b></div><div class="f bk"><b class="tape tail"></b></div><div class="f rt"></div><div class="f lf"></div><div class="f tp"><b class="tape"></b></div><div class="f bt"></div></div>
+        </div>
+
+        <!-- what happened in the shop today, floating up one after another -->
+        <div class="tick" style="--x:-150px;--y:-150px;--z:120px;--k:0"><b>Sale 1043</b><span>Notebook x2 &middot; ₹120</span></div>
+        <div class="tick alert" style="--x:110px;--y:-120px;--z:-40px;--k:1"><b>Restock</b><span>Gel Pen, 3 left</span></div>
+        <div class="tick" style="--x:-60px;--y:-210px;--z:-120px;--k:2"><b>Purchase 0218</b><span>Mineral Water +24</span></div>
+      </div>
+    </div>
+    <div class="dock-copy">
+      <p class="dock-title">Your stockroom, right where you left it.</p>
+      <p class="dock-sub">Every product, sale and restock alert is waiting on the other side.</p>
+    </div>
+  </section>
+
+  <!-- right: the sign-in form -->
+  <section class="desk">
+    <header class="desk-top">
+      <a class="brand" href="./">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="9" fill="#101b33"/><path d="M20 9l10 5.5v11L20 31l-10-5.5v-11z" fill="#c99d68"/><path d="M20 9l10 5.5L20 20 10 14.5z" fill="#e2bd88"/><path d="M20 20v11l10-5.5v-11z" fill="#a97c4b"/><path d="M17.4 10.4l10 5.5v3.2l-2.6-1.4v-3.2l-10-5.5z" fill="#ffc72c"/></svg>
+        Inventory
+      </a>
+      <a class="back" href="./">Back to home</a>
+    </header>
+
+    <div class="form-wrap">
+      <h1>Welcome back</h1>
+      <p class="lead">Sign in to open your workspace.</p>
+      <div class="banner" id="mockBanner" hidden>Mock mode: any username and password works. Use the name "employee" for the employee view.</div>
+
+      <form id="loginForm" novalidate>
+        <div class="form-error" id="formError" role="alert" hidden></div>
+        <label class="fld">
+          <span>Username</span>
+          <input id="username" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        </label>
+        <label class="fld">
+          <span>Password</span>
+          <span class="pw">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button type="button" class="pw-toggle" id="pwToggle" aria-controls="password" aria-pressed="false">Show</button>
+          </span>
+        </label>
+        <button type="submit" class="go" id="goBtn"><span class="go-label">Sign in</span></button>
+      </form>
+      <p class="note">No account yet? Ask your shop admin to create one for you.</p>
+    </div>
+  </section>
+</main>
+
 <script src="js/format.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/mock.js"></script>

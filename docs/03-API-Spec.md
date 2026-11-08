@@ -5,7 +5,7 @@ Base URL `/api` · JSON · session cookie after login · **every write response 
 |---|---|---|---|---|
 | POST | /auth/login | any | Login → role | hashing, sessions |
 | POST | /auth/logout | any | Logout | |
-| GET | /products?search=&category=&sort=&order= | any | List/search/sort | vector, linear search, merge sort |
+| GET | /products?search=&category=&sort=&order= | any | List/search/sort (search matches the product id exactly, or any part of the name or SKU) | vector, hash map, linear search, merge sort |
 | GET | /products/{id} | any | One product | hash map / binary search |
 | POST | /products | admin | Add product | INSERT, constraints, hash set (SKU) |
 | PUT | /products/{id} | admin | Update product | UPDATE |

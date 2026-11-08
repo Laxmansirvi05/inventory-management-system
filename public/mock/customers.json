@@ -169,7 +169,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 0.409916,
+   "ms": 0.293,
    "result": {
     "columns": [
      "customer_id",

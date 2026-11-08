@@ -9,7 +9,7 @@ IMS.boot(async (content, user) => {
   let categories = [], suppliers = [], timer = null;
 
   const count = h('span', { class: 'muted' });
-  const search = h('input', { class: 'input grow', type: 'search', placeholder: 'Search by name or product id', 'aria-label': 'Search products',
+  const search = h('input', { class: 'input grow', type: 'search', placeholder: 'Search by name, SKU or product id', 'aria-label': 'Search products',
     on: { input: () => { clearTimeout(timer); timer = setTimeout(() => { state.search = search.value; load(); }, 250); } } });
   const catSel = IMS.ui.select([{ value: '', label: 'All categories' }], '', { 'aria-label': 'Category' });
   catSel.addEventListener('change', () => { state.category = catSel.value; load(); });
@@ -20,23 +20,71 @@ IMS.boot(async (content, user) => {
   const table = new IMS.ui.DataTable({ pageSize: 10, empty: 'No products found', onSort: (key, dir) => {
     state.sort = API_SORT[key]; state.order = dir; sortSel.value = state.sort + ':' + dir; load();
   }, columns: [
-    { label: 'Product', key: 'name', sortable: true, render: (p) => [thumb(p), p.name, h('div', { class: 'muted', style: 'margin-left:44px' }, p.sku)] },
+    { label: 'Product', key: 'name', sortable: true, render: (p) => h('div', { class: 'pcell' }, thumb(p), h('div', {}, h('b', {}, p.name), h('span', { class: 'muted' }, p.sku))) },
     { label: 'Category', key: 'category_name' },
     { label: 'Supplier', key: 'supplier_name' },
     { label: 'Price', key: 'unit_price', sortable: true, num: true, render: (p) => f.money(p.unit_price) },
-    { label: 'Stock', key: 'stock_quantity', sortable: true, num: true, render: (p) => [p.stock_quantity + ' ',
-      p.stock_quantity <= p.min_stock_level ? IMS.ui.tag(p.stock_quantity * 2 <= p.min_stock_level ? 'Critical' : 'Low', p.stock_quantity * 2 <= p.min_stock_level ? 'bad' : 'warn') : null] },
+    { label: 'Stock', key: 'stock_quantity', sortable: true, num: true, render: (p) => [level(p) ? IMS.ui.tag(level(p).label, level(p).tone) : null, ' ', h('b', {}, String(p.stock_quantity))] },
     { label: 'Min', key: 'min_stock_level', num: true },
     { label: 'Expiry', render: (p) => (p.expiry_date ? f.date(p.expiry_date) : '—') },
     admin ? { label: '', render: (p) => h('div', { class: 'row-actions' }, IMS.ui.btn('Edit', { small: true, onClick: () => form(p) }),
       IMS.ui.btn('Delete', { small: true, variant: 'danger', onClick: () => remove(p) })) } : null,
   ].filter(Boolean) });
 
+  // stock status: Critical at half the minimum or less, Low at the minimum or less
+  function level(p) {
+    if (p.stock_quantity > p.min_stock_level) return null;
+    return p.stock_quantity * 2 <= p.min_stock_level ? { label: 'Critical', tone: 'bad' } : { label: 'Low', tone: 'warn' };
+  }
+
+  let photoVer = 1;                                                // bumped after an upload so the browser fetches the new photo
+  const photoUrl = (p) => (p.has_photo && !IMS.api.isMock() ? '/api/products/' + p.id + '/photo?v=' + photoVer : null);
+
   // photo thumbnail, or a letter box when there is no photo
   function thumb(p) {
-    return p.has_photo && !IMS.api.isMock()
-      ? h('img', { class: 'thumb', src: '/api/products/' + p.id + '/photo', alt: '', loading: 'lazy' })
-      : h('span', { class: 'thumb', style: 'display:inline-grid;place-items:center;font-weight:700;color:var(--muted)' }, p.name.slice(0, 1).toUpperCase());
+    return photoUrl(p)
+      ? h('img', { class: 'thumb', src: photoUrl(p), alt: '', loading: 'lazy' })
+      : h('span', { class: 'thumb', style: 'display:inline-grid;place-items:center;font-weight:800;color:var(--muted)' }, p.name.slice(0, 1).toUpperCase());
+  }
+
+  // grid view: one card per product with its photo, price and a stock meter (stock against three times the minimum)
+  const grid = h('div', { class: 'pgrid' });
+  let rows = [];
+  function card(p) {
+    const lv = level(p);
+    const pct = Math.min(100, Math.round((p.stock_quantity / Math.max(1, p.min_stock_level * 3)) * 100));
+    return h('article', { class: 'pcard' },
+      h('div', { class: 'pic' },
+        photoUrl(p) ? h('img', { src: photoUrl(p), alt: p.name, loading: 'lazy' }) : h('span', { class: 'letter' }, p.name.slice(0, 1).toUpperCase()),
+        h('span', { class: 'tag' }, p.category_name),
+        lv ? IMS.ui.tag(lv.label, lv.tone) : null),
+      h('div', { class: 'info' },
+        h('div', { class: 'name' }, p.name),
+        h('div', { class: 'sku' }, p.sku + ' · ' + p.supplier_name),
+        h('div', { class: 'line' }, h('span', { class: 'price' }, f.money(p.unit_price)), h('span', { class: 'stock' }, f.int(p.stock_quantity) + ' in stock, min ' + p.min_stock_level)),
+        h('div', { class: 'meter', title: 'Stock against three times the minimum level' }, h('i', { class: lv ? lv.tone : '', style: 'width:' + Math.max(3, pct) + '%' }))),
+      admin ? h('div', { class: 'acts' }, IMS.ui.btn('Edit', { small: true, onClick: () => form(p) }), IMS.ui.btn('Delete', { small: true, variant: 'danger', onClick: () => remove(p) })) : null);
+  }
+
+  // table or grid (the choice is remembered in this browser)
+  let view = 'grid';
+  try { view = localStorage.getItem('productsView') || 'grid'; } catch (e) { /* storage blocked */ }
+  const body = h('div', {});
+  const segBtn = (v, icon, label) => h('button', { type: 'button', 'data-v': v, 'aria-pressed': String(view === v), class: view === v ? 'on' : '', on: { click: () => setView(v) } }, IMS.ui.icon(icon), label);
+  const seg = h('div', { class: 'seg', role: 'group', 'aria-label': 'View' }, segBtn('grid', 'tiles', 'Grid'), segBtn('table', 'list', 'Table'));
+  function setView(v) {
+    view = v;
+    try { localStorage.setItem('productsView', v); } catch (e) { /* storage blocked */ }
+    seg.querySelectorAll('button').forEach((b) => { const on = b.dataset.v === v; b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); });
+    draw();
+  }
+  function draw() {
+    IMS.ui.clear(body);
+    if (view === 'table') { body.appendChild(table.el); return; }
+    IMS.ui.clear(grid);
+    if (!rows.length) { body.appendChild(h('div', { class: 'empty' }, 'No products found')); return; }
+    rows.forEach((p) => grid.appendChild(card(p)));
+    body.appendChild(grid);
   }
 
   // ask the server for the current search/filter/sort
@@ -46,7 +94,9 @@ IMS.boot(async (content, user) => {
     if (state.sort) q.set('order', state.order);
     const res = await IMS.api.get('/api/products' + (q.toString() ? '?' + q : ''));
     if (!res.ok) { IMS.ui.toast(IMS.api.message(res), 'error'); return; }
+    rows = res.data;
     table.setRows(res.data);
+    draw();
     count.textContent = res.data.length + (res.data.length === 1 ? ' product' : ' products');
   }
 
@@ -108,6 +158,7 @@ IMS.boot(async (content, user) => {
       if (file) {
         const up = await IMS.api.request('POST', '/api/products/' + res.data.id + '/photo', null, { raw: file });
         if (!up.ok) IMS.ui.toast('Product saved, but the photo failed: ' + IMS.api.message(up), 'error');
+        else photoVer = Date.now();
       }
       IMS.ui.toast(edit ? 'Product updated' : 'Product added');
       dlg.close(); load();
@@ -117,7 +168,8 @@ IMS.boot(async (content, user) => {
   const [c, s] = await Promise.all([IMS.api.get('/api/categories'), IMS.api.get('/api/suppliers')]);
   categories = c.ok ? c.data : []; suppliers = s.ok ? s.data : [];
   for (const cat of categories) catSel.appendChild(h('option', { value: cat.category_id }, cat.category_name));
-  content.append(h('section', { class: 'card' }, h('div', { class: 'toolbar' }, search, catSel, sortSel, count,
-    IMS.ui.ads('Hash map / Merge sort / Binary search'), admin ? IMS.ui.btn('Add product', { variant: 'primary', onClick: () => form(null) }) : null), table.el));
+  content.append(h('section', { class: 'card' },
+    h('div', { class: 'toolbar' }, search, catSel, sortSel, admin ? IMS.ui.btn('Add product', { variant: 'primary', onClick: () => form(null) }) : null),
+    h('div', { class: 'toolbar sub' }, seg, count, h('span', { class: 'grow' }), h('a', { href: 'credits.html', class: 'muted', style: 'font-size:13px' }, 'Photo credits'), IMS.ui.ads('Hash map / Merge sort / Binary search')), body));
   await load();
 });

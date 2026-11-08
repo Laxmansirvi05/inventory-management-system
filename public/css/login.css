@@ -1,0 +1,124 @@
+/* login.css : the sign-in page. Left, the stockroom at night under one lamp; right, the sign-in desk.
+   Same palette and type as the landing page: ink, concrete, cardboard, shipping-tape yellow. */
+:root {
+  --ink: #101b33; --ink-2: #2a3a5e; --ink-3: #1a2747; --concrete: #e6e9ed; --paper: #f4f6f8; --line: #c6cdd6; --muted: #53607a;
+  --tape: #ffc72c; --tape-d: #e0a800; --red: #d6342b;
+  --head: "Avenir Next Condensed", "Franklin Gothic Medium", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif;
+  --body: "Avenir Next", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 17px/1.55 var(--body); -webkit-font-smoothing: antialiased; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; }
+
+.split { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(400px, 1fr); min-height: 100vh; }
+
+/* ---------- left: the dock ---------- */
+.dock { position: relative; overflow: hidden; color: #fff;
+  background: radial-gradient(70% 60% at 50% 42%, #24365f 0%, var(--ink-3) 48%, var(--ink) 100%); }
+.beam { position: absolute; left: 50%; top: -10%; width: 70%; height: 95%; transform: translateX(-50%);
+  background: linear-gradient(rgba(255, 214, 120, .2), rgba(255, 214, 120, 0) 85%);
+  clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); filter: blur(18px); pointer-events: none;
+  animation: hum 7s ease-in-out infinite; }
+@keyframes hum { 0%, 100% { opacity: .85; } 50% { opacity: 1; } }
+
+.lscene { position: absolute; inset: 0 0 150px; perspective: 1500px; perspective-origin: 50% 32%; }
+.stage { position: absolute; left: 52%; top: 52%; width: 0; height: 0; transform-style: preserve-3d;
+  --bx: -20deg; --by: -34deg; --px: 0deg; --py: 0deg; --sc: 1; --open: 0deg; --zoom: 1;
+  transform: scale(calc(var(--sc) * var(--zoom))) rotateX(calc(var(--bx) + var(--px))) rotateY(calc(var(--by) + var(--py) + var(--open))); }
+.floor { position: absolute; left: -650px; top: -650px; width: 1300px; height: 1300px; transform: translateY(150px) rotateX(90deg);
+  background: radial-gradient(closest-side, rgba(255, 210, 120, .26), transparent 62%),
+    linear-gradient(rgba(255, 255, 255, .09) 1.5px, transparent 1.5px) 0 0 / 70px 70px,
+    linear-gradient(90deg, rgba(255, 255, 255, .09) 1.5px, transparent 1.5px) 0 0 / 70px 70px;
+  -webkit-mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); mask-image: radial-gradient(closest-side, #000 25%, transparent 100%); }
+.dock .shade { background: radial-gradient(closest-side, rgba(0, 0, 0, .6), rgba(0, 0, 0, .22) 62%, transparent); }
+
+/* small notes about the day that float up from the stack, one after another */
+.tick { position: absolute; left: 0; top: 0; display: grid; gap: 1px; padding: 9px 13px 10px; min-width: 160px; border-radius: 10px;
+  background: #fff; color: var(--ink); box-shadow: 0 0 0 2px var(--ink), 0 5px 0 2px var(--ink), 0 22px 30px rgba(0, 0, 0, .35);
+  font: 600 12px/1.25 var(--body); white-space: nowrap; opacity: 0;
+  transform: translate3d(var(--x), var(--y), var(--z)) rotateY(34deg) rotateX(20deg);
+  animation: tick 9s ease-in-out calc(1.6s + var(--k) * 3s) infinite; }
+.tick b { font: 800 17px/1.05 var(--head); }
+.tick span { color: var(--muted); }
+.tick.alert { background: var(--tape); }
+.tick.alert span { color: var(--ink-2); }
+@keyframes tick {
+  0% { opacity: 0; translate: 0 30px; }
+  8%, 30% { opacity: 1; translate: 0 0; }
+  38%, 100% { opacity: 0; translate: 0 -40px; }
+}
+
+.dock-copy { position: absolute; left: clamp(28px, 5vw, 64px); right: clamp(28px, 5vw, 64px); bottom: clamp(28px, 6vh, 56px); }
+.dock-title { margin: 0 0 8px; max-width: 13em; font: 800 clamp(2rem, 3.4vw, 3.2rem)/.98 var(--head); letter-spacing: -.02em; text-wrap: balance; }
+.dock-sub { margin: 0; max-width: 32em; color: #b9c4dc; font-size: 1.02rem; }
+
+/* ---------- right: the desk ---------- */
+.desk { display: flex; flex-direction: column; padding: 30px clamp(28px, 5vw, 72px) 40px; background: var(--paper); }
+.desk-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 11px; text-decoration: none; font: 800 27px/1 var(--head); letter-spacing: -.01em; }
+.brand svg { width: 36px; height: 36px; }
+.back { font-size: 15px; font-weight: 600; text-decoration: none; border-bottom: 2px solid transparent; padding: 4px 0; }
+.back:hover { border-bottom-color: var(--ink); }
+
+.form-wrap { width: min(420px, 100%); margin: auto 0; padding: 48px 0 24px; }
+h1 { margin: 0 0 8px; font: 800 clamp(2.8rem, 4.4vw, 4rem)/.95 var(--head); letter-spacing: -.025em; }
+.lead { margin: 0 0 34px; color: var(--ink-2); font-size: 1.1rem; }
+.note { margin: 26px 0 0; color: var(--muted); font-size: 15px; }
+
+.banner { margin: -14px 0 24px; padding: 11px 14px; border: 2px solid var(--ink); border-radius: 10px; background: #fff7d6; font-size: 14px; }
+.form-error { margin: 0 0 18px; padding: 11px 14px; border-radius: 10px; background: #fde9e7; color: #8f1d16; border: 2px solid var(--red); font-size: 15px; font-weight: 600; }
+
+.fld { display: block; margin-bottom: 18px; }
+.fld > span:first-child { display: block; margin-bottom: 7px; font-size: 15px; font-weight: 700; }
+.fld input { width: 100%; height: 54px; padding: 0 16px; border: 2px solid var(--ink); border-radius: 11px; background: #fff; color: var(--ink);
+  font: 500 17px var(--body); transition: box-shadow .15s, border-color .15s; }
+.fld input:focus { outline: none; box-shadow: 0 0 0 4px rgba(255, 199, 44, .7); }
+.fld input[aria-invalid="true"] { border-color: var(--red); }
+.pw { position: relative; display: block; }
+.pw input { padding-right: 82px; }
+.pw-toggle { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); height: 38px; padding: 0 12px; border: 0; border-radius: 8px;
+  background: transparent; color: var(--ink); font: 700 14px var(--body); cursor: pointer; }
+.pw-toggle:hover { background: var(--concrete); }
+
+.go { position: relative; width: 100%; height: 56px; margin-top: 8px; border: 2px solid var(--ink); border-radius: 11px; background: var(--tape); color: var(--ink);
+  font: 800 18px var(--body); cursor: pointer; box-shadow: 0 5px 0 var(--ink); transition: transform .12s, box-shadow .12s; }
+.go:hover { transform: translateY(2px); box-shadow: 0 3px 0 var(--ink); }
+.go:active { transform: translateY(5px); box-shadow: 0 0 0 var(--ink); }
+.go:disabled { cursor: progress; }
+/* while signing in, a small box spins in the button */
+.go.busy .go-label::before { content: ""; display: inline-block; width: 14px; height: 14px; margin-right: 10px; vertical-align: -1px;
+  background: var(--ink); border-radius: 3px; animation: spin .8s cubic-bezier(.5, 0, .5, 1) infinite; }
+@keyframes spin { to { transform: rotate(180deg); } }
+
+/* wrong password: the form shakes once */
+.shake { animation: shake .45s cubic-bezier(.36, .07, .19, .97); }
+@keyframes shake { 15%, 55% { transform: translateX(-8px); } 35%, 75% { transform: translateX(8px); } 90% { transform: translateX(-2px); } }
+
+/* signed in: the camera swings round the stack and the desk fades before the dashboard opens */
+.opening .stage { transition: transform .9s cubic-bezier(.6, 0, .3, 1); --open: 70deg; --zoom: 1.25; }
+.opening .tick { animation: none; opacity: 0; }
+.opening .desk .form-wrap { transition: opacity .5s .2s, transform .5s .2s; opacity: 0; transform: translateY(-10px); }
+
+/* ---------- smaller screens ---------- */
+@media (max-width: 1080px) {
+  .stage { --sc: .8; }
+}
+@media (max-width: 860px) {
+  .split { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .dock { height: 300px; }
+  .lscene { inset: 0; }
+  .stage { --sc: .5; top: 44%; left: 50%; }
+  .dock-copy, .beam { display: none; }
+  .desk { padding: 26px 22px 36px; }
+  .form-wrap { margin: 0; padding-top: 34px; }
+}
+@media (max-width: 420px) {
+  .stage { --sc: .44; }
+  .dock { height: 250px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .tick[style*="--k:0"] { opacity: 1; }
+}

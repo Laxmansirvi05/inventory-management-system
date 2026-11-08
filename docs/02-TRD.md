@@ -31,7 +31,7 @@ ims/
   src/        main.cpp server.cpp routes_*.cpp inventory.cpp sorting.cpp orders.cpp restock.cpp undo.cpp
               database.cpp repository.cpp sqllog.cpp auth.cpp
   include/    one header per source file (product.h, server.h, ...)
-  public/     login.html index.html products.html categories.html parties.html purchases.html sales.html
+  public/     login.html index.html (landing) dashboard.html products.html categories.html parties.html purchases.html sales.html
               reports.html users.html model.html bill.html   css/ js/ js/pages/ img/ mock/
   sql/        schema.sql triggers.sql views.sql seed.sql roles.sql syllabus_demo.sql
   scripts/    load_db.sh load_aiven.sh load_roles.sh run_syllabus_demo.sh make_mock.py
@@ -54,7 +54,7 @@ ims/
 ## 5. Algorithms (ADS)
 | Algorithm | Where | Written by |
 |---|---|---|
-| Linear search | Search by name/category | hand-written |
+| Linear search | Search by name or SKU, filter by category | hand-written |
 | Binary search | Search by ID in sorted vector | hand-written |
 | Merge sort | Sort by price, quantity, name | hand-written |
 | Hashing | ID and SKU lookup | `unordered_map/set` |

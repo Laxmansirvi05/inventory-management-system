@@ -87,7 +87,7 @@
      "error": null,
      "helper": false,
      "kind": "DQL",
-     "ms": 0.645458,
+     "ms": 0.613167,
      "result": {
       "columns": [
        "category_name",
@@ -206,7 +206,7 @@
      "error": null,
      "helper": false,
      "kind": "DQL",
-     "ms": 0.712417,
+     "ms": 0.56325,
      "result": {
       "columns": [
        "product_name",
@@ -369,7 +369,7 @@
      "error": null,
      "helper": false,
      "kind": "DQL",
-     "ms": 0.562083,
+     "ms": 0.513041,
      "result": {
       "columns": [
        "customer_name",
@@ -457,7 +457,7 @@
      "error": null,
      "helper": false,
      "kind": "DQL",
-     "ms": 0.430959,
+     "ms": 0.378542,
      "result": {
       "columns": [
        "supplier_name",
@@ -630,7 +630,7 @@
      "error": null,
      "helper": false,
      "kind": "DQL",
-     "ms": 0.537542,
+     "ms": 0.51575,
      "result": {
       "columns": [
        "sku",
@@ -751,7 +751,7 @@
      "error": null,
      "helper": false,
      "kind": "DQL",
-     "ms": 1.224792,
+     "ms": 0.921375,
      "result": {
       "columns": [
        "product_id",

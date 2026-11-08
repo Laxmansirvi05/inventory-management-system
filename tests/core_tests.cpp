@@ -98,6 +98,7 @@ static void testSortSearch() {
 
     CHECK(searchByName(inv.all(), "PEN").size() == 2, "linear search by name is case-insensitive (2 pens)");
     CHECK(searchByName(inv.all(), "zzz").empty(), "linear search with no match is empty");
+    CHECK(searchByName(inv.all(), "sku8").size() == 1 && searchByName(inv.all(), "sku8")[0].id == 8, "linear search also matches the SKU");
     CHECK(searchByCategory(inv.all(), 2).size() == 4, "linear search by category (4 electronics)");
     CHECK(searchByName(inv.all(), "'; DROP TABLE Products;--").empty(), "injection text is plain text");
 }

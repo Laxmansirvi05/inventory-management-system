@@ -93,7 +93,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 0.999375,
+   "ms": 0.559875,
    "result": {
     "columns": [
      "purchase_id",

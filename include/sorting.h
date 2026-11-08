@@ -13,7 +13,7 @@ void mergeSort(std::vector<Product>& items, const ProductLess& less);
 // Comparator for field "price", "qty" or "name" (name ignores case). Empty function if field is unknown.
 ProductLess makeComparator(const std::string& field, bool ascending);
 
-// Linear search: products whose name contains `text` (case-insensitive). O(n * m).
+// Linear search: products whose name or SKU contains `text` (case-insensitive). O(n * m).
 std::vector<Product> searchByName(const std::vector<Product>& items, const std::string& text);
 
 // Linear search: products in one category. O(n).

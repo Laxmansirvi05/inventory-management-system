@@ -466,7 +466,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 4.390959,
+   "ms": 3.778792,
    "result": {
     "columns": [
      "table_name",
@@ -525,7 +525,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 1.550334,
+   "ms": 1.515333,
    "result": {
     "columns": [
      "table_name",

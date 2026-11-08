@@ -57,7 +57,7 @@ std::vector<Product> searchByName(const std::vector<Product>& items, const std::
     std::vector<Product> found;
     std::string needle = lower(text);
     for (const Product& p : items) {                       // look at every product once
-        if (lower(p.name).find(needle) != std::string::npos) found.push_back(p);
+        if (lower(p.name).find(needle) != std::string::npos || lower(p.sku).find(needle) != std::string::npos) found.push_back(p);
     }
     return found;
 }

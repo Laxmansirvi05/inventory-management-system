@@ -7,9 +7,17 @@ Needs a server on a TEST database (it creates and deletes rows):
     DB_NAME=ims_test PORT=8099 build/ims &
     python3 tests/livesql_coverage.py http://127.0.0.1:8099
 Exit code 1 when a data-changing endpoint returns no SQL, or a failed write does not end in ROLLBACK.
+
+It also checks every statement the panel would show against MySQL itself (mysql client, database IMS_DB, default ims_test):
+  SELECT  -> run again on its own; columns, total row count and the rows shown must match what MySQL returns
+             (inside a transaction, or a helper read, only the columns are compared: the data has moved on since)
+  INSERT / UPDATE / DELETE -> EXPLAIN <statement> must succeed (MySQL parses it fully but changes nothing)
+  START TRANSACTION / COMMIT / ROLLBACK -> every transaction that starts must end
 """
 import json
+import os
 import pathlib
+import subprocess
 import re
 import sys
 import urllib.error
@@ -23,6 +31,82 @@ PASSWORD = os.environ.get("IMS_ADMIN_PASSWORD") or re.search(r"admin / (\S+) ;",
 PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360f8cfc0f01f0005000201a5f645400000000049454e44ae426082")
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
 rows, problems = [], []
+stats = {"DQL compared": 0, "DQL columns only": 0, "DML parsed": 0, "TCL": 0}
+DB = os.environ.get("IMS_DB", "ims_test")
+
+
+def mysql(sql):
+    """Run one statement with the mysql client; returns (ok, columns, rows, error)."""
+    args = ["mysql", "-u", os.environ.get("MYSQL_USER", "root"), "--batch", "--raw", DB, "-e", sql]
+    if os.environ.get("MYSQL_HOST"):
+        args[1:1] = ["-h", os.environ["MYSQL_HOST"], "-P", os.environ.get("MYSQL_PORT", "3306")]
+    r = subprocess.run(args, capture_output=True, text=True)
+    if r.returncode != 0:
+        return False, [], [], r.stderr.strip()
+    lines = r.stdout.split("\n")
+    if lines and lines[-1] == "":
+        lines.pop()
+    if not lines:
+        return True, [], [], ""
+    return True, lines[0].split("\t"), [l.split("\t") for l in lines[1:]], ""
+
+
+def probe(sql):
+    """The displayed text with the two display-only placeholders turned back into runnable values."""
+    return re.sub(r"<BLOB \d+ bytes>", "NULL", sql).replace("'***'", "'x'")
+
+
+def verify(label, log):
+    in_txn = False
+    for e in log:
+        sql, kind = e["sql"], e["kind"]
+        where = "%s #%d" % (label, e["seq"])
+        if kind == "TCL":
+            stats["TCL"] += 1
+            if sql == "START TRANSACTION":
+                if in_txn:
+                    problems.append(where + ": START TRANSACTION inside a transaction")
+                in_txn = True
+            elif sql in ("COMMIT", "ROLLBACK"):
+                if not in_txn:
+                    problems.append(where + ": " + sql + " without START TRANSACTION")
+                in_txn = False
+            else:
+                problems.append(where + ": unexpected TCL " + sql)
+            continue
+        if kind == "DML":
+            ok, _, _, err = mysql("EXPLAIN " + probe(sql))
+            stats["DML parsed"] += 1
+            if not ok:
+                problems.append(where + ": MySQL cannot parse the shown DML: " + err + "\n      " + sql)
+            continue
+        if kind == "DQL":
+            ok, cols, data, err = mysql(probe(sql))
+            if not ok:
+                problems.append(where + ": the shown SELECT fails in MySQL: " + err + "\n      " + sql)
+                continue
+            res = e["result"]
+            if not res:
+                continue
+            if not cols and not data and res["total"] == 0:      # mysql prints nothing at all for an empty set
+                stats["DQL compared"] += 1
+                continue
+            if cols != res["columns"]:
+                problems.append(where + ": columns differ: panel %s, MySQL %s" % (res["columns"], cols))
+                continue
+            if in_txn or e["helper"]:
+                stats["DQL columns only"] += 1
+                continue
+            stats["DQL compared"] += 1
+            shown = [["NULL" if c is None else str(c) for c in r] for r in res["rows"]]
+            if res["total"] != len(data):
+                problems.append(where + ": panel says %d rows, MySQL returns %d\n      %s" % (res["total"], len(data), sql))
+            elif shown != data[:len(shown)] and not all(r in data for r in shown):
+                problems.append(where + ": rows shown differ from MySQL\n      panel %s\n      mysql %s" % (shown[:2], data[:2]))
+            continue
+        problems.append(where + ": unexpected statement kind " + kind)
+    if in_txn:
+        problems.append(label + ": transaction left open in the log")
 
 
 def call(method, path, body=None, raw=None):
@@ -48,6 +132,7 @@ def record(label, method, path, body=None, raw=None, writes=False, expect_sql=Tr
     trig = sum(len(e["triggers"]) for e in log)
     snap = sum(1 for e in log if e["before"] or e["after"])
     errs = [e for e in log if e["error"]]
+    verify(label, log)
     rows.append((label, status, len(log), ",".join(kinds) or "-", outputs, trig, snap, bool(errs), note))
     if expect_sql and not log:
         problems.append("%s returned no SQL" % label)
@@ -102,5 +187,6 @@ for r in rows:
 print()
 for p in problems:
     print("PROBLEM:", p)
+print("statements checked against MySQL: " + ", ".join("%s %d" % kv for kv in stats.items()))
 print("%d endpoints checked, %d problems" % (len(rows), len(problems)))
 sys.exit(1 if problems else 0)

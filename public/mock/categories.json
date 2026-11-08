@@ -45,7 +45,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 0.900958,
+   "ms": 0.601208,
    "result": {
     "columns": [
      "category_id",

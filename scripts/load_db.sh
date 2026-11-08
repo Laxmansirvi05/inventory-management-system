@@ -45,7 +45,7 @@ if [ -z "$MYSQL_HOST" ]; then
 else
     echo "Remote server $MYSQL_HOST: using existing database '$DB' (tables are recreated, the database is kept)."
 fi
-for f in schema triggers views seed; do
+for f in schema triggers views seed photos; do
     mysql "$@" "$DB" < "$DIR/$f.sql"
     echo "  loaded $f.sql"
 done

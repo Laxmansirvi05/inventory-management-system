@@ -246,7 +246,7 @@ check(st == 200 and body == PNG and kind.startswith("image/png"), "same bytes co
 check(admin.j("GET", "/api/products/1")[1]["data"]["has_photo"] is True, "has_photo true")
 check(admin.call("POST", "/api/products/1/photo", raw=b"not an image at all", ctype="image/png")[0] == 400, "non-image refused")
 check(admin.call("POST", "/api/products/1/photo", raw=PNG + b"0" * (1024 * 1024), ctype="image/png")[0] == 413, "photo over 1 MB refused")
-check(admin.call("GET", "/api/products/2/photo")[0] == 404, "no photo -> 404")
+check(admin.call("GET", "/api/products/99999/photo")[0] == 404, "no photo (unknown product) -> 404")
 check(emp.call("POST", "/api/products/1/photo", raw=PNG, ctype="image/png")[0] == 403, "employee cannot upload photo")
 
 print("[users]")
@@ -276,7 +276,7 @@ print("[hardening]")
 hdr = urllib.request.urlopen(BASE + "/login.html").headers
 check("default-src 'self'" in hdr.get("Content-Security-Policy", ""), "pages carry a Content-Security-Policy")
 check(hdr.get("X-Frame-Options") == "DENY" and hdr.get("X-Content-Type-Options") == "nosniff" and hdr.get("Referrer-Policy"), "pages carry framing, sniffing and referrer headers")
-check(admin.call("GET", "/api/products")[0] == 200 and "Content-Security-Policy" in urllib.request.urlopen(BASE + "/img/er_diagram.png").headers, "images carry them too")
+check(admin.call("GET", "/api/products")[0] == 200 and "Content-Security-Policy" in urllib.request.urlopen(BASE + "/img/er_diagram.svg").headers, "images carry them too")
 st, d, _ = anon.call("POST", "/api/auth/login", raw=b"a" * 3000000, ctype="application/json")
 check(st == 413 and d["error"]["code"] == "TOO_LARGE", "an oversized body is answered 413 TOO_LARGE, not a false 404")
 st, d = admin.j("POST", "/api/sales", {"items": [{"product_id": 6, "quantity": 2000000}]})
@@ -300,7 +300,7 @@ check(admin.j("GET", "/api/dashboard")[1]["data"]["undo_depth"] == 0, "reload cl
 print("[misc]")
 st, d = admin.j("GET", "/api/nope")
 check(st == 404 and d["error"]["code"] == "NOT_FOUND", "unknown API path -> JSON 404")
-check(admin.call("GET", "/img/er_diagram.png")[0] == 200, "static file served from public/")
+check(admin.call("GET", "/img/er_diagram.svg")[0] == 200, "static file served from public/")
 st, d = emp.j("POST", "/api/auth/logout")
 check(st == 200 and emp.j("GET", "/api/auth/me")[0] == 401, "logout ends the session")
 

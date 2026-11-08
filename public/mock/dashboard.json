@@ -12,7 +12,8 @@
    "revenue": 70.0
   },
   "stock_value": 753914.0,
-  "undo_depth": 1
+  "undo_depth": 1,
+  "units": 6935
  },
  "ok": true,
  "sql_log": [
@@ -22,7 +23,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 0.380208,
+   "ms": 0.322708,
    "result": {
     "columns": [
      "orders",
@@ -47,7 +48,7 @@
    "error": null,
    "helper": false,
    "kind": "DQL",
-   "ms": 0.314833,
+   "ms": 0.264709,
    "result": {
     "columns": [
      "products",

@@ -17,11 +17,13 @@ IMS.boot(async (content) => {
   }
 
   content.append(
-    h('div', { class: 'grid-2' },
-      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'ER diagram')), h('div', { class: 'card-b' }, diagram('img/er_diagram.png', 'ER diagram'))),
-      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Relational schema')), h('div', { class: 'card-b' }, diagram('img/schema.png', 'Relational schema')))),
-    h('p', { class: 'muted' }, 'The diagrams show the nine tables of the DBMS report. The Users table (login accounts) and Products.photo were added for the web app and appear below.'));
+    h('section', { class: 'card', style: 'margin-bottom:22px' },
+      h('div', { class: 'card-h' }, h('h2', {}, 'ER diagram'), h('span', { class: 'muted' }, 'Chen notation · click to enlarge')),
+      h('div', { class: 'card-b' }, diagram('img/er_diagram.svg', 'ER diagram'))),
+    h('section', { class: 'card', style: 'margin-bottom:22px' },
+      h('div', { class: 'card-h' }, h('h2', {}, 'Relational schema'), h('span', { class: 'muted' }, 'tables, keys and foreign-key links · click to enlarge')),
+      h('div', { class: 'card-b' }, diagram('img/schema.svg', 'Relational schema'))));
   const res = await IMS.api.get('/api/model');
   if (!res.ok) { IMS.ui.toast(IMS.api.message(res), 'error'); return; }
-  content.append(h('h2', { style: 'margin:8px 0 14px' }, res.data.tables.length + ' tables'), h('div', { class: 'tables-grid' }, res.data.tables.map(tableCard)));
+  content.append(h('h2', { style: 'margin:8px 0 14px;font:800 26px var(--head)' }, res.data.tables.length + ' tables in the database'), h('div', { class: 'tables-grid' }, res.data.tables.map(tableCard)));
 });

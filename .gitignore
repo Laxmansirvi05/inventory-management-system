@@ -3,3 +3,4 @@ build/
 *.pem
 .DS_Store
 backup-*.sql
+__pycache__/

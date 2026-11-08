@@ -9,7 +9,7 @@ IMS.boot(async (content) => {
   let current = null;                                              // {name, title, columns, rows}
 
   // "stock_value" -> "Stock value"
-  const heading = (c) => c.charAt(0).toUpperCase() + c.slice(1).replace(/_/g, ' ').replace(/\bid\b/g, 'ID').replace(/\bsku\b/gi, 'SKU');
+  const heading = (c) => { const t = c.replace(/_/g, ' ').replace(/\bid\b/g, 'ID').replace(/\bsku\b/gi, 'SKU'); return t.charAt(0).toUpperCase() + t.slice(1); };
 
   // draw one report result
   function show(r) {

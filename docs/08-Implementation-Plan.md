@@ -69,7 +69,7 @@ Pure C++ with **no database**, tested from a small `main` with sample data (this
 | Page | Content |
 |---|---|
 | `login.html` | username/password, role redirect |
-| `index.html` | dashboard: counts, stock value, low-stock list, recent transactions |
+| `dashboard.html` | dashboard: counts, stock value, low-stock list, recent transactions |
 | `products.html` | table, search (name/category/id), sort, add/edit/delete modal, photo upload |
 | `parties.html` | suppliers and customers tabs |
 | `purchases.html` / `sales.html` | multi-item form, order queue display, result with totals |

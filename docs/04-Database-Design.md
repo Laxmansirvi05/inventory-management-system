@@ -7,9 +7,20 @@ Categories, Suppliers, Customers, Products (+ **NEW** `photo MEDIUMBLOB`), Purch
 ## ER diagram
 ![ER diagram](img/er_diagram.png)
 
+Chen notation (Elmasri & Navathe, Korth):
+- **Weak entities** `Sale_Items` and `Purchase_Items` are double rectangles. A sale line has no identity of its own: it is identified by its owner
+  (`Sales` / `Purchases`) through an **identifying relationship** (double diamond: `includes`, `contains`) plus its **partial key** (discriminator)
+  `product_id`, drawn with a **dashed underline**. Full key = owner key + partial key: `(sale_id, product_id)`, `(purchase_id, product_id)`.
+- **Total participation** (double line) wherever the foreign key is `NOT NULL`: every product has a category (`classifies`) and a supplier (`supplies`),
+  every sale a customer (`makes`), every purchase a supplier (`fulfils`), every ledger row a product (`logs`), every line an owner and a product
+  (`includes`/`contains`, `sold_in`/`listed_in`). The other side of each relationship is partial (single line): a category may have no products yet.
+- Key attributes are underlined; `total_amount` is a **derived attribute** (dashed ellipse) kept equal to the sum of the lines by the triggers.
+- `Users` (login accounts) stands alone: it has no relationships.
+
 ## Relational schema
 ![Schema](img/schema.png)
-(The Users table is standalone and not shown in these figures; update them when it is added.)
+
+Both figures are drawn by `scripts/make_diagrams.py` (SVG for the app's Database Model page, PNG here with `--png`).
 
 ## Normalization
 All report tables are in BCNF (functional dependencies in the DBMS report, Table 3.7). `Sales.total_amount` and `Purchases.total_amount` are deliberate derived columns maintained by triggers.

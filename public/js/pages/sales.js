@@ -40,11 +40,21 @@ IMS.boot(async (content, user) => {
     syncSave();
   }
 
+  // today's sales in three numbers (worked out from the history rows the page already has)
+  const todayBox = h('div', { class: 'today' });
+  function drawToday(rows) {
+    const t = rows.filter((r) => String(r.sale_date).slice(0, 10) === f.today());
+    const cell = (label, value) => h('div', {}, h('span', {}, label), h('b', {}, value));
+    IMS.ui.clear(todayBox).append(cell('Sales today', f.int(t.length)),
+      cell('Revenue today', f.money(t.reduce((a, r) => a + Number(r.total_amount || 0), 0))),
+      cell('Units sold', f.int(t.reduce((a, r) => a + Number(r.units_sold || 0), 0))));
+  }
+
   // reload the queue card and the history table
   async function loadSide() {
     const [q, s] = await Promise.all([IMS.api.get('/api/sales/queue'), IMS.api.get('/api/sales')]);
     if (q.ok) queue.setRows(q.data.orders);
-    if (s.ok) history.setRows(s.data);
+    if (s.ok) { history.setRows(s.data); drawToday(s.data); }
   }
 
   // send the sale; the server queues it (FIFO) and runs the transaction
@@ -80,8 +90,10 @@ IMS.boot(async (content, user) => {
         formBox,
         admin ? h('label', { style: 'display:flex;gap:8px;align-items:center;margin-top:12px;color:var(--muted)' }, force, 'Demo: send even if stock is too low (shows the trigger error and ROLLBACK)') : null,
         h('div', { style: 'display:flex;justify-content:flex-end;margin-top:14px' }, saveBtn))),
-    h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Order queue'), IMS.ui.ads('Queue (first in, first out)')),
-      h('div', { style: 'max-height:420px;overflow:auto' }, queue.el))),
-    h('section', { class: 'card', style: 'margin-top:20px' }, h('div', { class: 'card-h' }, h('h2', {}, 'Sales history')), history.el));
+    h('div', { class: 'stack' },
+      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Today'), h('span', { class: 'muted' }, f.date(f.today()))), todayBox),
+      h('section', { class: 'card' }, h('div', { class: 'card-h' }, h('h2', {}, 'Order queue'), IMS.ui.ads('Queue (first in, first out)')),
+        h('div', { style: 'max-height:420px;overflow:auto' }, queue.el)))),
+    h('section', { class: 'card', style: 'margin-top:22px' }, h('div', { class: 'card-h' }, h('h2', {}, 'Sales history')), history.el));
   await loadSide();
 });

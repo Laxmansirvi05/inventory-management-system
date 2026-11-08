@@ -10,7 +10,7 @@ Plain **HTML + CSS + JavaScript** (no framework), multi-page, light theme, rupee
 | # | File | Roles | Purpose |
 |---|---|---|---|
 | 1 | `login.html` | all | Login, role redirect |
-| 2 | `index.html` | all | Dashboard: 4 stat cards, restock alerts (priority queue), recent stock transactions, Undo last |
+| 2 | `dashboard.html` | all | Dashboard: 4 stat cards, restock alerts (priority queue), recent stock transactions, Undo last |
 | 3 | `products.html` | admin: full; employee: view/search | Table with search (name/category/id), sort, filters, add/edit/delete modal, photo upload/preview |
 | 4 | `categories.html` | admin | List with product count; add/edit/delete (delete blocked if used → shows FK error) |
 | 5 | `parties.html` | admin: full; employee: view | Tabs **Customers** / **Suppliers**: list, add, edit, delete |
@@ -25,9 +25,9 @@ Plain **HTML + CSS + JavaScript** (no framework), multi-page, light theme, rupee
 
 **Live SQL toggle**
 - Top-right switch; **default off**; state stored in `localStorage` (`liveSql=on|off`).
-- Panel (380 px, dark) slides in from the right; content area shrinks; switch back to off hides it. Collapse button in the panel footer does the same.
-- The backend records SQL for every request regardless of the switch, so opening the panel shows the last action(s) immediately (client also keeps the last 50 entries in memory per page session).
-- Panel header: "Live SQL · last action · N ms"; footer: "Statements: N", Clear, Collapse.
+- Panel (dark, 440 px by default) slides in from the right; content area shrinks; switch back to off hides it. Collapse button in the panel footer does the same. Drag its left edge to resize it between 340 px and 60 % of the window (900 px at most); arrow keys on the edge do the same, double-click resets. The width is remembered.
+- The backend records SQL for every request regardless of the switch, so opening the panel shows the last action(s) immediately. The panel lists actions oldest first, newest at the bottom, scrolls to each new statement, and keeps the last 80 statements for the browser tab (sessionStorage), so the log continues across pages.
+- Panel header: "Live SQL · last action N ms"; each action shows time, method and path, statement count and time; each statement shows its number, kind (DQL/DML/TCL), the SQL with one clause per line, then the result table (scrolls sideways) or "Query OK, N rows affected"; footer: "N statements", Clear, Collapse.
 
 **Panel content per statement (what "with output" means)**
 1. Sequence number and SQL text (keywords coloured). 2. **Output:** for SELECT a small result table (up to 5 rows + "N rows"), for INSERT/UPDATE/DELETE "N row(s) affected" and generated id, for TCL "OK". 3. **Trigger notes** under the statement that fired them (green = allowed/passed, amber = action taken). 4. **Before/After** boxes for changed rows (stock, totals). 5. **Error** (red) with MySQL error number and message, followed by `ROLLBACK`. 6. Time per request.
@@ -56,7 +56,7 @@ Plain **HTML + CSS + JavaScript** (no framework), multi-page, light theme, rupee
 ## 5. Files
 ```
 public/
-  login.html index.html products.html categories.html parties.html
+  login.html dashboard.html products.html categories.html parties.html
   purchases.html sales.html reports.html users.html model.html
   css/  style.css  (tokens + components)
   js/   api.js       fetch wrapper, error handling, adds sql_log to panel
@@ -66,7 +66,7 @@ public/
         format.js    ₹ and date formatting, escape HTML
         ui.js        toast, modal, confirm, table helpers (sort/paginate)
         pages/       products.js sales.js purchases.js ... one file per page
-  img/  er_diagram.png schema.png logo.svg
+  img/  er_diagram.svg schema.svg favicon.svg (diagrams drawn by scripts/make_diagrams.py)
   mock/ sample JSON responses (used when `?mock=1`)
 ```
 Rules: each file < ~250 lines, each function commented in one line, no inline event handlers, all text escaped before insertion (no `innerHTML` with raw data).
@@ -74,7 +74,7 @@ Rules: each file < ~250 lines, each function commented in one line, no inline ev
 **As built (Phase 6):** the file list above also gained `js/mock.js` (the mock router used by `api.js`), `js/crud.js` (shared list + add/edit/delete for categories, customers, suppliers) and `js/itemform.js` (shared multi-item form for sales and purchases). The mock JSON in `public/mock/` is generated from real API answers by `scripts/make_mock.py`. Sales has an admin-only demo checkbox that sends a sale even when stock is too low, so the trigger error 1644 and the ROLLBACK can be shown on purpose.
 
 ## 6. Design tokens (from the mockups)
-Background `#f5f7fb`, card `#ffffff`, text `#1c2433`, muted `#6b7689`, border `#e3e8f0`, accent `#2563eb` (soft `#e8efff`), success `#16a34a`/`#e7f7ec`, warning `#d97706`/`#fff4e0`, danger `#dc2626`/`#fdeaea`; SQL panel `#0f172a`, panel cards `#111c33`. Font: Inter (fallback Segoe UI, system-ui); SQL: JetBrains Mono / Menlo. Base 14 px; radius 8 px inputs, 12 px cards; spacing steps 4/8/12/16/24. Light theme only.
+Same brand as the landing page: ink navy `#101b33` sidebar and primary buttons, shipping-tape yellow `#ffc72c` for the active item, focus ring and switch, background `#eef1f5`, cards `#ffffff` with border `#dde3ea`; success `#138a4a`, warning `#b26a00`, danger `#c62a22`; Live SQL panel `#0b1328`. Headings and numbers in a condensed face (Avenir Next Condensed, fallback Arial Narrow), body in Avenir Next / Segoe UI, SQL in the system monospace. Radius 10 px inputs, 16 px cards. Light theme only.
 
 ## 7. API contract the frontend relies on
 **Every response:** `{ "ok": true|false, "data": …, "error": {"code","mysql_errno","message"}?, "sql_log": [ … ] }`.
@@ -95,7 +95,7 @@ Employee-forbidden calls return HTTP 403 with `error.code = "FORBIDDEN"`; unauth
 
 ## 9. Build order
 1. `style.css`, `layout.js`, `sqlpanel.js`, `ui.js`, `format.js`, `api.js` (shell and panel working with mock data).
-2. `login.html`, `index.html`.
+2. `login.html`, `dashboard.html`.
 3. `products.html` (full CRUD), `categories.html`.
 4. `parties.html`, `sales.html`, `purchases.html`.
 5. `reports.html`, `users.html`, `model.html`.

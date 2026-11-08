@@ -1,38 +1,72 @@
-// login.js : username/password form, then go to the dashboard.
+// login.js : the sign-in page. Checks the form, signs in, then swings the stockroom camera and opens the dashboard.
+// The 3D stockroom on the left leans toward the pointer and drifts slowly on its own.
 (function () {
-  const h = IMS.ui.h;
-
-  // build the form and wire the submit button
-  function show() {
-    const error = h('div', { class: 'form-error', style: 'display:none', role: 'alert' });
-    const user = h('input', { class: 'input', id: 'username', autocomplete: 'username', required: true });
-    const pass = h('input', { class: 'input', id: 'password', type: 'password', autocomplete: 'current-password', required: true });
-    const go = IMS.ui.btn('Sign in', { variant: 'primary', type: 'submit' });
-    go.style.width = '100%';
-
-    const form = h('form', { novalidate: true, on: { submit: async (e) => {
-      e.preventDefault();
-      error.style.display = 'none';
-      if (!user.value.trim() || !pass.value) { error.textContent = 'Enter your username and password'; error.style.display = ''; return; }
-      go.disabled = true;
-      const res = await IMS.api.post('/api/auth/login', { username: user.value.trim(), password: pass.value }, { noRedirect: true, silent: true });
-      go.disabled = false;
-      if (res.ok) { location.href = 'index.html'; return; }
-      error.textContent = res.error && res.error.code === 'INVALID_CREDENTIALS' ? 'Invalid username or password' : IMS.api.message(res);
-      error.style.display = '';
-      pass.value = '';
-      pass.focus();
-    } } }, error, IMS.ui.field('Username', user), IMS.ui.field('Password', pass), go);
-
-    document.body.appendChild(h('div', { class: 'login-wrap' },
-      h('div', { class: 'card login-card' },
-        h('span', { class: 'brand-logo', style: 'width:38px;height:38px;display:grid;place-items:center;border-radius:10px;background:var(--accent);color:#fff' }, IMS.ui.icon('layers')),
-        h('h1', {}, 'Inventory Management'), h('p', { class: 'muted', style: 'margin:0 0 20px' }, 'Sign in to continue'),
-        IMS.api.isMock() ? h('div', { class: 'banner' }, 'Mock mode: any username and password works. Use the name "employee" for the employee view.') : null,
-        form)));
-    user.focus();
-  }
+  'use strict';
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = (id) => document.getElementById(id);
+  const form = $('loginForm'), user = $('username'), pass = $('password'), go = $('goBtn'), error = $('formError');
 
   // already signed in? skip the form
-  IMS.session.load().then((me) => { if (me) location.href = 'index.html'; else show(); });
+  IMS.session.load().then((me) => { if (me) location.href = 'dashboard.html'; });
+  if (IMS.api.isMock()) $('mockBanner').hidden = false;
+  user.focus();
+
+  // show or hide the password
+  $('pwToggle').addEventListener('click', (e) => {
+    const show = pass.type === 'password';
+    pass.type = show ? 'text' : 'password';
+    e.currentTarget.textContent = show ? 'Hide' : 'Show';
+    e.currentTarget.setAttribute('aria-pressed', String(show));
+    pass.focus();
+  });
+
+  function fail(message, field) {
+    error.textContent = message;
+    error.hidden = false;
+    [user, pass].forEach((f) => f.removeAttribute('aria-invalid'));
+    if (field) { field.setAttribute('aria-invalid', 'true'); field.focus(); }
+    form.classList.remove('shake'); void form.offsetWidth; form.classList.add('shake');
+  }
+  [user, pass].forEach((f) => f.addEventListener('input', () => { f.removeAttribute('aria-invalid'); error.hidden = true; }));
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (go.disabled) return;
+    if (!user.value.trim()) return fail('Enter your username.', user);
+    if (!pass.value) return fail('Enter your password.', pass);
+    error.hidden = true;
+    go.disabled = true; go.classList.add('busy'); go.querySelector('.go-label').textContent = 'Signing in';
+    const res = await IMS.api.post('/api/auth/login', { username: user.value.trim(), password: pass.value }, { noRedirect: true, silent: true });
+    if (res.ok) {
+      go.querySelector('.go-label').textContent = 'Opening your workspace';
+      document.body.classList.add('opening');
+      setTimeout(() => { location.href = 'dashboard.html'; }, reduce ? 0 : 850);
+      return;
+    }
+    go.disabled = false; go.classList.remove('busy'); go.querySelector('.go-label').textContent = 'Sign in';
+    pass.value = '';
+    const bad = res.error && res.error.code === 'INVALID_CREDENTIALS';
+    fail(bad ? 'That username and password do not match. Check them and try again.' : IMS.api.message(res), pass);
+  });
+
+  // the stockroom leans toward the pointer; with no pointer it drifts slowly around the stack
+  const stage = $('stage');
+  if (stage && !reduce) {
+    let tx = 0, ty = 0, cx = 0, cy = 0, pointing = false;
+    window.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') return;
+      pointing = true;
+      tx = (e.clientX / innerWidth - 0.5) * 2;
+      ty = (e.clientY / innerHeight - 0.5) * 2;
+    });
+    document.addEventListener('pointerleave', () => { pointing = false; });
+    (function frame(t) {
+      if (!pointing) { tx = Math.sin(t / 4200) * 0.5; ty = Math.cos(t / 5600) * 0.25; }
+      cx += (tx - cx) * 0.05;
+      cy += (ty - cy) * 0.05;
+      stage.style.setProperty('--py', (cx * 10).toFixed(3) + 'deg');
+      stage.style.setProperty('--px', (-cy * 6).toFixed(3) + 'deg');
+      requestAnimationFrame(frame);
+    })(0);
+  }
 })();
