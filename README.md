@@ -32,5 +32,3 @@ All of these write data, so they run only against a database whose name ends in 
 ## Deploy
 Aiven MySQL for the database, a Render Docker web service for the app. Step-by-step guide, tested parts, known risks and the wake-up checklist: [docs/10-Deployment.md](docs/10-Deployment.md). Free tiers sleep when idle: open both before a demo.
 
-## Team
-D. Yashwin (25R11A66U2) · K. Krithik (25R11A66V2) · Lakshman (25R11A66V5) — Geethanjali College of Engineering and Technology, CSE.
