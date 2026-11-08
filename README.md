@@ -11,7 +11,7 @@ Login (Admin/Employee) · product CRUD, search, sort, photos · purchases and sa
 
 ## Run locally
 1. Install MySQL 8 (includes the `libmysqlclient` C library), a C++17 compiler and CMake.
-2. Create the database: `scripts/load_db.sh ims` (runs `schema.sql`, `triggers.sql`, `views.sql`, `seed.sql`, `photos.sql` (a picture for each of the 60 products; `scripts/load_photos.sh` adds them to an existing database); `roles.sql` is optional and creates server-wide accounts). An older copy: `scripts/migrate_db.sh ims`.
+2. Create the database: `scripts/load_db.sh ims` (runs `schema.sql`, `triggers.sql`, `views.sql`, `seed.sql`, `photos.sql` (a picture for each of the 60 products; `scripts/load_photos.sh` adds them to an existing database, `scripts/photos_aiven.sh <host> <port>` to the Aiven one); `roles.sql` is optional and creates server-wide accounts). An older copy: `scripts/migrate_db.sh ims`.
 3. Set environment variables (all optional locally; defaults are `127.0.0.1:3306`, user `root`, database `ims`, port `8080`): `DB_HOST DB_PORT DB_USER DB_PASSWORD DB_NAME DB_SSL_CA PORT PUBLIC_DIR SHOP_NAME COOKIE_SECURE`.
 4. `cmake -B build && cmake --build build` then run `build/ims` and open `http://localhost:8080`. The landing page is at `/`; signing in leads to `dashboard.html`.
 
