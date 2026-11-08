@@ -8,6 +8,7 @@
 #include <vector>
 #include <nlohmann/json.hpp>
 #include "auth.h"
+#include "fairlock.h"
 #include "database.h"
 #include "inventory.h"
 #include "orders.h"
@@ -67,7 +68,7 @@ struct App {
     OrderQueue orders;
     SessionStore sessions;
     LoginThrottle throttle;
-    std::mutex mu;                              // one request at a time: single DB connection, shared memory
+    FairMutex mu;                               // one request at a time, in arrival order: single DB connection, shared memory
     std::map<int, std::string> categoryNames, supplierNames;
     std::deque<OrderRecord> orderHistory;       // newest last, capped
     int nextOrderId = 1;

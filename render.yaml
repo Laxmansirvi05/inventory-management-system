@@ -7,7 +7,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: singapore     # same region as the Aiven database (every sale runs about ten statements)
-    autoDeploy: true
+    autoDeploy: false     # a push must not restart the live site by surprise (e.g. during a viva); deploy by hand: Render -> Manual Deploy
     healthCheckPath: /api/health
     envVars:
       - key: DB_HOST          # Aiven service host

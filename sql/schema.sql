@@ -1,6 +1,8 @@
 -- schema.sql : DDL for the Inventory Management System (MySQL 8)
 -- Run order: schema.sql, triggers.sql, views.sql, seed.sql, roles.sql
 -- Re-runnable: drops and recreates the database tables (DROP, CREATE).
+-- Item rows reference their sale or purchase with ON DELETE RESTRICT (not CASCADE): a cascade would remove lines
+-- without firing triggers and leave stock, totals and ledger out of step. Lines are deleted explicitly (see triggers.sql).
 
 DROP TABLE IF EXISTS Stock_Transactions;
 DROP TABLE IF EXISTS Sale_Items;
@@ -80,7 +82,7 @@ CREATE TABLE Purchase_Items (
     CONSTRAINT chk_pi_qty  CHECK (quantity > 0),
     CONSTRAINT chk_pi_cost CHECK (unit_cost > 0),
     CONSTRAINT fk_pi_pur  FOREIGN KEY (purchase_id) REFERENCES Purchases(purchase_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_pi_prod FOREIGN KEY (product_id)  REFERENCES Products(product_id)
         ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
@@ -103,7 +105,7 @@ CREATE TABLE Sale_Items (
     CONSTRAINT chk_si_qty   CHECK (quantity > 0),
     CONSTRAINT chk_si_price CHECK (unit_price > 0),
     CONSTRAINT fk_si_sale FOREIGN KEY (sale_id)    REFERENCES Sales(sale_id)
-        ON DELETE CASCADE ON UPDATE CASCADE,
+        ON DELETE RESTRICT ON UPDATE CASCADE,
     CONSTRAINT fk_si_prod FOREIGN KEY (product_id) REFERENCES Products(product_id)
         ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
@@ -121,7 +123,7 @@ CREATE TABLE Stock_Transactions (
         ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB;
 
--- NEW for the web app: login accounts (10th table). password_hash format: salt$sha256hex(salt+password)
+-- NEW for the web app: login accounts (10th table). password_hash format: pbkdf2-sha256$iterations$salt$hex
 CREATE TABLE Users (
     user_id        INT AUTO_INCREMENT PRIMARY KEY,
     username       VARCHAR(40)  NOT NULL UNIQUE,

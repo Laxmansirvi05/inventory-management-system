@@ -182,6 +182,7 @@ body.sql-open .sqlpanel { transform: none; }
 .sql-action { color: #8da2c8; font-size: 12px; padding: 6px 2px 0; display: flex; justify-content: space-between; }
 .sql-stmt { background: var(--panel-card); border: 1px solid #1e2a47; border-radius: 8px; padding: 10px 12px; }
 .sql-stmt.err { border-color: #7f1d1d; }
+.sql-stmt.helper { opacity: .62; }
 .sql-top { display: flex; gap: 8px; align-items: baseline; color: #8da2c8; font-size: 11px; margin-bottom: 4px; }
 .sql-top .grow { flex: 1; }
 .sql-code { font-family: var(--mono); font-size: 12px; white-space: pre-wrap; word-break: break-word; color: #dbe4f5; }

@@ -18,7 +18,8 @@ from http.cookiejar import CookieJar
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8099"
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-PASSWORD = re.search(r"admin / (\S+) ;", (ROOT / "sql" / "seed.sql").read_text()).group(1)
+import os
+PASSWORD = os.environ.get("IMS_ADMIN_PASSWORD") or re.search(r"admin / (\S+) ;", (ROOT / "sql" / "seed.sql").read_text()).group(1)
 PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360f8cfc0f01f0005000201a5f645400000000049454e44ae426082")
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
 rows, problems = [], []
@@ -84,6 +85,7 @@ record("DELETE /products/{id}", "DELETE", "/api/products/%d" % pid, writes=True)
 record("POST /purchases", "POST", "/api/purchases", {"supplier_id": 1, "items": [{"product_id": 6, "quantity": 5, "unit_cost": 20}]}, writes=True)
 record("POST /sales", "POST", "/api/sales", {"customer_id": 1, "items": [{"product_id": 6, "quantity": 2}]}, writes=True)
 record("POST /undo", "POST", "/api/undo", {}, writes=True)
+record("POST /system/reload", "POST", "/api/system/reload", {}, writes=False)
 uid = record("POST /users", "POST", "/api/users", {"username": "audit.user", "password": "Audit-Pw-12345", "role": "EMPLOYEE"}, writes=True)[1]["data"]["id"]
 record("PUT /users/{id}", "PUT", "/api/users/%d" % uid, {"role": "ADMIN"}, writes=True)
 record("DELETE /users/{id}", "DELETE", "/api/users/%d" % uid, writes=True)

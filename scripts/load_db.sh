@@ -24,10 +24,16 @@ for v in "$IMS_ADMIN_PASSWORD" "$IMS_EMPLOYEE_PASSWORD"; do
     if [ -n "$v" ] && [ "${#v}" -lt 8 ]; then echo "Passwords must have at least 8 characters." >&2; exit 1; fi
 done
 
-# "salt$sha256hex(salt+password)": the same format the server checks at login.
+# "pbkdf2-sha256$100000$salt$hex": the format the server stores and checks (python3 does the hashing; the password
+# travels in an environment variable, not on a command line). Without python3 the older "salt$sha256hex" format is
+# written instead, and the server replaces it with PBKDF2 at that user's first login.
 hash_pw() {
-    salt="$(openssl rand -hex 8)"
-    printf '%s$%s' "$salt" "$(printf '%s%s' "$salt" "$1" | openssl dgst -sha256 | awk '{print $NF}')"
+    if command -v python3 >/dev/null 2>&1; then
+        IMS_PW="$1" python3 -c 'import hashlib, os; s = os.urandom(8).hex(); print("pbkdf2-sha256$100000$" + s + "$" + hashlib.pbkdf2_hmac("sha256", os.environ["IMS_PW"].encode(), s.encode(), 100000).hex())'
+    else
+        salt="$(openssl rand -hex 8)"
+        printf '%s$%s' "$salt" "$(printf '%s%s' "$salt" "$1" | openssl dgst -sha256 | awk '{print $NF}')"
+    fi
 }
 
 set -- -u "${MYSQL_USER:-root}"

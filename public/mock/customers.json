@@ -167,8 +167,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.413333,
+   "ms": 0.409916,
    "result": {
     "columns": [
      "customer_id",

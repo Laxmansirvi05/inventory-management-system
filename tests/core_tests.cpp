@@ -1,6 +1,11 @@
 // core_tests.cpp : console tests for Phase 2 (data structures, algorithms) and Phase 3 (stock logic).
 // No database needed. Run: build/core_tests   (exit code 0 = all passed)
+#include <chrono>
 #include <iostream>
+#include <mutex>
+#include <thread>
+#include <vector>
+#include "fairlock.h"
 #include "inventory.h"
 #include "orders.h"
 #include "sorting.h"
@@ -183,12 +188,64 @@ static void testOrders() {
     CHECK(!q.processNext(inv).ok, "same product on two lines is added up before checking");
 }
 
+static void testGroupUndo() {
+    std::cout << "[undo of a whole sale or purchase]\n";
+    Inventory inv;
+    std::string err;
+    inv.addProduct(mk(1, "A", 1, 10, 100, 5), err);
+    inv.addProduct(mk(2, "B", 1, 10, 100, 5), err);
+    inv.sell(1, 10, 7);                                 // sale 7 has two lines
+    inv.sell(2, 20, 7);
+    inv.purchase(1, 5, 8);                              // purchase 8 has one line
+    std::vector<StockTxn> g = inv.undoGroup();
+    CHECK(g.size() == 1 && g[0].kind == "PURCHASE" && g[0].docId == 8, "newest group is the purchase (one line)");
+    CHECK(inv.undoGroupApply().ok && inv.findById(1)->qty == 90, "undoing the purchase takes its 5 back out (95 -> 90)");
+    g = inv.undoGroup();
+    CHECK(g.size() == 2 && g[0].docId == 7 && g[1].docId == 7, "next group is the sale with BOTH lines");
+    CHECK(inv.undoGroupApply().ok && inv.findById(1)->qty == 100 && inv.findById(2)->qty == 100 && inv.undoDepth() == 0, "undoing the sale restores both products and empties the stack");
+    CHECK(!inv.undoGroupApply().ok && inv.undoGroup().empty(), "nothing left to undo");
+    inv.purchase(1, 50, 9);
+    inv.sell(1, 120, 10);                               // stock 30: the purchase cannot be undone after the sale... undo the sale first
+    CHECK(inv.undoGroupApply().ok && inv.findById(1)->qty == 150, "stack order: the sale is undone first");
+    Product low = *inv.findById(1);
+    low.qty = 10;                                       // stock changed outside the stack
+    inv.updateProduct(low, err);
+    TxnResult r = inv.undoGroupApply();                 // purchase of 50 would need stock >= 50
+    CHECK(!r.ok && inv.findById(1)->qty == 10 && inv.undoDepth() == 1, "undo that would make stock negative is refused and leaves everything as it was");
+    inv.clearUndo();
+    CHECK(inv.undoDepth() == 0, "clearUndo empties the history");
+}
+
+static void testFairLock() {
+    std::cout << "[fair lock: first come, first served]\n";
+    FairMutex m;
+    std::vector<int> served;
+    m.lock();                                           // hold the lock while eight threads queue up, 20 ms apart
+    std::vector<std::thread> threads;
+    for (int i = 0; i < 8; ++i) {
+        threads.emplace_back([&, i] { std::lock_guard<FairMutex> g(m); served.push_back(i); });
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+    m.unlock();
+    for (std::thread& t : threads) t.join();
+    bool inOrder = served.size() == 8;
+    for (int i = 0; i < static_cast<int>(served.size()); ++i) if (served[static_cast<size_t>(i)] != i) inOrder = false;
+    CHECK(inOrder, "eight waiting threads were served in the order they arrived");
+    int counter = 0;                                    // and the lock still protects shared data
+    std::vector<std::thread> workers;
+    for (int i = 0; i < 4; ++i) workers.emplace_back([&] { for (int k = 0; k < 1000; ++k) { std::lock_guard<FairMutex> g(m); ++counter; } });
+    for (std::thread& t : workers) t.join();
+    CHECK(counter == 4000, "4 threads x 1000 increments = 4000 (mutual exclusion holds)");
+}
+
 int main() {
     testRecords();
     testSortSearch();
     testStock();
     testAlertOrder();
     testOrders();
+    testGroupUndo();
+    testFairLock();
     std::cout << "\n" << (checks - failures) << "/" << checks << " checks passed\n";
     return failures == 0 ? 0 : 1;
 }

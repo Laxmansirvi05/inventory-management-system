@@ -41,6 +41,7 @@ nlohmann::json SqlLog::toJson() const {
         j["seq"] = e.seq;
         j["sql"] = e.sql;
         j["kind"] = e.kind;
+        j["helper"] = e.helper;
         j["rows_affected"] = e.rowsAffected < 0 ? nlohmann::json(nullptr) : nlohmann::json(e.rowsAffected);
         if (e.hasResult) {
             nlohmann::json rows = nlohmann::json::array();

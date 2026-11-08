@@ -121,6 +121,64 @@ int main() {
     WriteResult del = deleteProductRow(db, inv, static_cast<int>(f.id), delOk);
     CHECK(f.ok && del.ok && inv.findById(static_cast<int>(f.id)) == nullptr, "delete of a product with no history works");
 
+    std::cout << "[delete and edit triggers, no silent cascade]\n";
+    {
+        Inventory scratch;
+        scratch.replaceAll(loadProducts(db, nullptr));
+        int s11 = dbStock(db, 11);
+        SqlLog l;
+        WriteResult sale = recordSale(db, scratch, 1, {{11, 3}}, l);
+        CHECK(sale.ok && dbStock(db, 11) == s11 - 3, "setup: a sale of 3 took stock down");
+        db.begin(nullptr);                                  // remove the line by hand, then look, then roll back
+        db.execute("DELETE FROM Sale_Items WHERE sale_id = ?", {P(sale.id)}, nullptr);
+        CHECK(dbStock(db, 11) == s11, "deleting a sale line puts the stock back (delete trigger)");
+        QueryResult tot = db.execute("SELECT total_amount FROM Sales WHERE sale_id = ?", {P(sale.id)}, nullptr);
+        CHECK(std::stod(*tot.rows[0][0]) == 0.0, "... and lowers the sale total");
+        QueryResult led = db.execute("SELECT txn_type, quantity_change FROM Stock_Transactions ORDER BY txn_id DESC LIMIT 1", {}, nullptr);
+        CHECK(*led.rows[0][0] == "UNDO" && *led.rows[0][1] == "3", "... and writes an UNDO ledger row");
+        db.rollback(nullptr);
+        unsigned code = 0;
+        try { db.execute("DELETE FROM Sales WHERE sale_id = ?", {P(sale.id)}, nullptr); } catch (const DbError& e) { code = e.errNo; }
+        CHECK(code == 1451, "deleting a sale that still has lines is refused (foreign key RESTRICT, no cascade)");
+        code = 0;
+        try { db.execute("UPDATE Sale_Items SET quantity = 1 WHERE sale_id = ?", {P(sale.id)}, nullptr); } catch (const DbError& e) { code = e.errNo; }
+        CHECK(code == 1644, "editing a sale line in place is refused by trigger");
+        SqlLog pl;
+        WriteResult pur = recordPurchase(db, scratch, 1, {{11, 2, 10.0}}, pl);
+        code = 0;
+        try { db.execute("UPDATE Purchase_Items SET quantity = 9 WHERE purchase_id = ?", {P(pur.id)}, nullptr); } catch (const DbError& e) { code = e.errNo; }
+        CHECK(pur.ok && code == 1644, "editing a purchase line in place is refused by trigger");
+    }
+
+    std::cout << "[undo removes the whole sale or purchase in MySQL]\n";
+    {
+        Inventory inv2;
+        inv2.replaceAll(loadProducts(db, nullptr));
+        long long salesBefore = dbCount(db, "Sales");
+        int a = dbStock(db, 12), b = dbStock(db, 13);
+        SqlLog sl;
+        WriteResult s2 = recordSale(db, inv2, 1, {{12, 2}, {13, 1}}, sl);
+        SqlLog ul;
+        WriteResult u = undoLastTxn(db, inv2, ul);
+        std::cout << ul.toText();
+        CHECK(u.ok && u.kind == "SALE" && u.lines == 2 && u.id == s2.id, "undo reports the sale and its two lines");
+        CHECK(dbStock(db, 12) == a && dbStock(db, 13) == b && inv2.findById(12)->qty == a && inv2.findById(13)->qty == b, "stock is restored in the database and in memory");
+        CHECK(dbCount(db, "Sales") == salesBefore, "the sale itself is gone, so reports agree with stock again");
+        bool traced = false;
+        for (const SqlEntry& e : ul.entries()) if (e.sql.rfind("DELETE FROM Sale_Items", 0) == 0 && e.triggers.size() == 1 && e.before.present && e.after.present) traced = true;
+        CHECK(traced && ul.entries().back().sql == "COMMIT", "the log shows each delete with its trigger note and before/after stock");
+        QueryResult drift = db.execute("SELECT COUNT(*) FROM Products p WHERE p.stock_quantity <> (SELECT COALESCE(SUM(quantity_change), 0) FROM Stock_Transactions t WHERE t.product_id = p.product_id)", {}, nullptr);
+        CHECK(*drift.rows[0][0] == "0", "stock still equals the ledger sum for every product");
+
+        SqlLog pl;
+        WriteResult pur = recordPurchase(db, inv2, 1, {{14, 5, 10.0}}, pl);
+        db.execute("UPDATE Products SET stock_quantity = 0 WHERE product_id = 14", {}, nullptr);      // the stock left behind our back
+        SqlLog bad;
+        WriteResult ub = undoLastTxn(db, inv2, bad);
+        CHECK(pur.ok && !ub.ok && ub.errNo == 0 && ub.error.rfind("Cannot undo purchase", 0) == 0, "a purchase whose stock is already gone cannot be undone");
+        CHECK(bad.entries().back().sql == "ROLLBACK" && inv2.undoDepth() >= 1, "... it is rolled back and stays on the undo stack");
+    }
+
     std::cout << "[lost connection: the server closes an idle connection]\n";
     {
         Database d2;

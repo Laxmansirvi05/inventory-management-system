@@ -45,10 +45,13 @@ public:
     size_t size() const { return items_.size(); }
 
     // ---- stock logic ----
-    TxnResult purchase(int productId, int qty);                 // stock in
-    TxnResult sell(int productId, int qty);                     // stock out, rule: qty <= stock
+    TxnResult purchase(int productId, int qty, int docId = 0);  // stock in (docId = purchase_id, for undo)
+    TxnResult sell(int productId, int qty, int docId = 0);      // stock out, rule: qty <= stock (docId = sale_id)
     TxnResult undoLast();                                       // reverse the newest transaction (stack)
     size_t undoDepth() const { return undo_.size(); }
+    std::vector<StockTxn> undoGroup() const { return undo_.topGroup(); }   // all lines of the newest sale or purchase
+    TxnResult undoGroupApply();                                 // reverse every line of that group in memory, all or nothing
+    void clearUndo() { undo_ = UndoStack(); }
     bool peekUndo(StockTxn& out) const {                        // newest transaction without removing it
         if (undo_.empty()) return false;
         out = undo_.top();
@@ -60,7 +63,7 @@ public:
 
 private:
     void rebuildIndexes();                                      // O(n log n): pointers move when the vector grows
-    TxnResult change(int productId, int delta, const std::string& kind, bool recordUndo);
+    TxnResult change(int productId, int delta, const std::string& kind, bool recordUndo, int docId = 0);
 
     std::vector<Product> items_;                                // ArrayList
     std::unordered_map<int, Product*> byId_;                    // HashMap

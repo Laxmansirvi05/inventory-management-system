@@ -139,11 +139,14 @@ Reply saleBill(Ctx& c) {
 
 // ---------- undo and alerts ----------
 
+// POST /api/undo : remove the newest sale or purchase made since the server started, and put its stock back.
 Reply undo(Ctx& c) {
     WriteResult w = undoLastTxn(c.app.db, c.app.inv, c.log);
     if (!w.ok) return writeFailure(w);
-    const Product* p = c.app.inv.findById(static_cast<int>(w.id));
-    return okReply({{"product_id", w.id}, {"stock_quantity", p ? p->qty : 0}, {"undo_depth", c.app.inv.undoDepth()}});
+    if (w.kind == "SALE") {                                      // the queue card must not show a sale that no longer exists
+        for (OrderRecord& r : c.app.orderHistory) if (r.saleId == w.id) { r.status = "undone"; r.message = "Removed by Undo"; }
+    }
+    return okReply({{"kind", w.kind}, {"document_id", w.id}, {"lines", w.lines}, {"undo_depth", c.app.inv.undoDepth()}});
 }
 
 // GET /api/alerts/low-stock : priority queue, most urgent first (served from memory)

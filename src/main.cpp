@@ -35,6 +35,17 @@ int main() {
         return 1;
     }
     try {
+        // This version needs the delete/edit triggers and RESTRICT foreign keys (Undo relies on them). Refuse an older
+        // schema instead of silently misbehaving; on Render the old version then stays live until the database is migrated.
+        QueryResult trg = app.db.execute("SELECT COUNT(*) FROM information_schema.triggers WHERE trigger_schema = DATABASE() "
+            "AND trigger_name IN ('trg_sale_items_ad', 'trg_purchase_items_ad', 'trg_sale_items_bu', 'trg_purchase_items_bu')", {}, nullptr);
+        QueryResult fks = app.db.execute("SELECT COUNT(*) FROM information_schema.referential_constraints WHERE constraint_schema = DATABASE() "
+            "AND constraint_name IN ('fk_si_sale', 'fk_pi_pur') AND delete_rule = 'RESTRICT'", {}, nullptr);
+        if (*trg.rows[0][0] != "4" || *fks.rows[0][0] != "2") {
+            std::fprintf(stderr, "The database schema is out of date (delete/edit triggers or RESTRICT keys missing).\n"
+                                 "Run scripts/migrate_db.sh (or scripts/migrate_aiven.sh) once, then start again.\n");
+            return 1;
+        }
         app.inv.replaceAll(loadProducts(app.db, nullptr));      // MySQL is the source of truth: load it into memory
         app.refreshNames();
     } catch (const DbError& e) {

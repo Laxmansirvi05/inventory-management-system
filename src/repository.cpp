@@ -12,9 +12,11 @@ std::string cell(const QueryResult& r, size_t row, size_t col) {
     return *r.rows[row][col];
 }
 
-// Current stock of one product, read without logging (used only to describe what a trigger did).
-std::string stockOf(Database& db, int productId) {
-    QueryResult r = db.execute("SELECT stock_quantity FROM Products WHERE product_id = ?", {P(productId)}, nullptr);
+// Current stock of one product. With a log the read is recorded and marked as a "helper read": the server ran it only
+// to describe what a trigger did (the Before/After boxes), and the Live SQL panel shows it dimmed.
+std::string stockOf(Database& db, int productId, SqlLog* log = nullptr) {
+    QueryResult r = db.execute("SELECT stock_quantity FROM Products WHERE product_id = ?", {P(productId)}, log);
+    if (log && !log->empty()) log->last().helper = true;
     return cell(r, 0, 0);
 }
 
@@ -95,9 +97,10 @@ WriteResult recordSale(Database& db, Inventory& inv, int customerId, const std::
             db.execute("INSERT INTO Sale_Items (sale_id, product_id, quantity, unit_price) VALUES (?, ?, ?, ?)",
                        {P(saleId), P(pid), P(qty), Param{false, true, price}}, &log);
 
-            // Describe what the triggers did, for the Live SQL panel.
-            std::string stockAfter = stockOf(db, pid);
-            SqlEntry& ins = log.last();
+            // Describe what the triggers did, for the Live SQL panel (index, not a reference: the helper read adds an entry).
+            const size_t insIdx = log.size() - 1;
+            std::string stockAfter = stockOf(db, pid, &log);
+            SqlEntry& ins = log.at(insIdx);
             ins.triggers.push_back({"trg_sale_items_bi", "stock " + stockBefore + " >= " + std::to_string(qty) + " -> allowed", "ok"});
             ins.triggers.push_back({"trg_sale_items_ai",
                                     "stock " + stockBefore + " -> " + stockAfter + ", sale total updated, ledger row added", "action"});
@@ -121,7 +124,7 @@ WriteResult recordSale(Database& db, Inventory& inv, int customerId, const std::
 
     // COMMIT succeeded: now bring memory in line.
     bool inSync = true;
-    for (const auto& line : merged) inSync = inv.sell(line.first, line.second).ok && inSync;
+    for (const auto& line : merged) inSync = inv.sell(line.first, line.second, static_cast<int>(res.id)).ok && inSync;
     if (!inSync) resync(db, inv);
     res.ok = true;
     return res;
@@ -140,11 +143,12 @@ WriteResult recordPurchase(Database& db, Inventory& inv, int supplierId, const s
         long long purchaseId = static_cast<long long>(pur.insertId);
         for (const auto& kv : merged) {
             const PurchaseLine& l = kv.second;
-            std::string stockBefore = stockOf(db, l.productId);
+            std::string stockBefore = stockOf(db, l.productId, &log);
             db.execute("INSERT INTO Purchase_Items (purchase_id, product_id, quantity, unit_cost) VALUES (?, ?, ?, ?)",
                        {P(purchaseId), P(l.productId), P(l.qty), P(l.unitCost)}, &log);
-            std::string stockAfter = stockOf(db, l.productId);
-            SqlEntry& ins = log.last();
+            const size_t insIdx = log.size() - 1;
+            std::string stockAfter = stockOf(db, l.productId, &log);
+            SqlEntry& ins = log.at(insIdx);
             ins.triggers.push_back({"trg_purchase_items_ai",
                                     "stock " + stockBefore + " -> " + stockAfter + ", purchase total updated, ledger row added", "action"});
             ins.before = stockSnapshot(l.productId, stockBefore);
@@ -160,7 +164,7 @@ WriteResult recordPurchase(Database& db, Inventory& inv, int supplierId, const s
         return failure(e);
     }
     bool inSync = true;
-    for (const auto& kv : merged) inSync = inv.purchase(kv.second.productId, kv.second.qty).ok && inSync;
+    for (const auto& kv : merged) inSync = inv.purchase(kv.second.productId, kv.second.qty, static_cast<int>(res.id)).ok && inSync;
     if (!inSync) resync(db, inv);
     res.ok = true;
     return res;
@@ -258,28 +262,46 @@ WriteResult runStatement(Database& db, const std::string& sql, const Params& par
 
 WriteResult undoLastTxn(Database& db, Inventory& inv, SqlLog& log) {
     WriteResult res;
-    StockTxn t;
-    if (!inv.peekUndo(t)) { res.error = "Nothing to undo"; return res; }
+    std::vector<StockTxn> group = inv.undoGroup();             // all lines of the newest sale or purchase
+    if (group.empty()) { res.error = "Nothing to undo"; return res; }
+    const bool isSale = group.front().kind == "SALE";
+    const int docId = group.front().docId;
+    if (docId <= 0) { res.error = "Cannot undo this change: it is not part of a sale or purchase"; return res; }
+    res.kind = isSale ? "SALE" : "PURCHASE";
+    res.lines = static_cast<int>(group.size());
+    res.id = docId;
     try {
         db.begin(&log);
-        std::string before = stockOf(db, t.productId);
-        db.execute("UPDATE Products SET stock_quantity = stock_quantity + ? WHERE product_id = ?",
-                   {P(-t.delta), P(t.productId)}, &log);
-        std::string after = stockOf(db, t.productId);
-        SqlEntry& upd = log.last();
-        upd.before = stockSnapshot(t.productId, before);
-        upd.after = stockSnapshot(t.productId, after);
-        db.execute("INSERT INTO Stock_Transactions (product_id, txn_type, quantity_change, reference_id, remarks) "
-                   "VALUES (?, 'UNDO', ?, NULL, ?)",
-                   {P(t.productId), P(-t.delta), P("Undo of last " + t.kind)}, &log);
-        res.id = t.productId;
+        if (!isSale) {                                         // a purchase can only go while its stock is still on the shelf
+            for (const StockTxn& t : group) {
+                if (std::atoi(stockOf(db, t.productId, &log).c_str()) < t.delta) {
+                    throw DbError(0, "Cannot undo purchase #" + std::to_string(docId) + ": some of its stock has already been sold");
+                }
+            }
+        }
+        // Delete the lines one by one: the delete trigger of each line puts the stock back, lowers the document total and
+        // writes an UNDO ledger row. (Rows removed by a foreign-key cascade would not fire triggers, so there is no cascade.)
+        for (const StockTxn& t : group) {
+            std::string before = stockOf(db, t.productId, &log);
+            if (isSale) db.execute("DELETE FROM Sale_Items WHERE sale_id = ? AND product_id = ?", {P(docId), P(t.productId)}, &log);
+            else db.execute("DELETE FROM Purchase_Items WHERE purchase_id = ? AND product_id = ?", {P(docId), P(t.productId)}, &log);
+            const size_t delIdx = log.size() - 1;
+            std::string after = stockOf(db, t.productId, &log);
+            SqlEntry& del = log.at(delIdx);
+            del.triggers.push_back({isSale ? "trg_sale_items_ad" : "trg_purchase_items_ad",
+                                    "stock " + before + " -> " + after + ", document total lowered, UNDO ledger row added", "action"});
+            del.before = stockSnapshot(t.productId, before);
+            del.after = stockSnapshot(t.productId, after);
+        }
+        if (isSale) db.execute("DELETE FROM Sales WHERE sale_id = ?", {P(docId)}, &log);
+        else db.execute("DELETE FROM Purchases WHERE purchase_id = ?", {P(docId)}, &log);
         db.commit(&log);
-    } catch (const DbError& e) {              // e.g. CHECK stock >= 0 fails when stock was edited since
+    } catch (const DbError& e) {
         abortTransaction(db, log);
         resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
-    if (!inv.undoLast().ok) resync(db, inv);
+    if (!inv.undoGroupApply().ok) resync(db, inv);
     res.ok = true;
     return res;
 }

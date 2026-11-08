@@ -4,7 +4,8 @@
 
 namespace {
 
-const char* kDummyHash = "0000000000000000$0000000000000000000000000000000000000000000000000000000000000000";
+// Same cost as a real check, so an unknown user name cannot be told apart by the time the answer takes.
+const char* kDummyHash = "pbkdf2-sha256$100000$0000000000000000$0000000000000000000000000000000000000000000000000000000000000000";
 
 std::string sessionCookie(const App& app, const std::string& token, int maxAge) {
     return "ims_session=" + token + "; Path=/; HttpOnly; SameSite=Lax; Max-Age=" + std::to_string(maxAge) +
@@ -38,6 +39,11 @@ Reply login(Ctx& c) {
 
     int userId = std::stoi(*r.rows[0][0]);
     std::string role = *r.rows[0][2];
+    if (needsRehash(*r.rows[0][1])) {                // old hash format or fewer rounds: store a fresh PBKDF2 hash now
+        SqlLog ignored;                              // never shown to the client (it holds a password hash)
+        runStatement(c.app.db, "UPDATE Users SET password_hash = ? WHERE user_id = ?",
+                     {PSecret(hashPassword(password, makeSalt())), P(userId)}, ignored);   // a failure here must not block the login
+    }
     std::string token = c.app.sessions.create(userId, username, role);
     Reply rep = okReply({{"user_id", userId}, {"username", username}, {"role", role}});
     rep.setCookie = sessionCookie(c.app, token, SessionStore::kLifetimeSeconds);
@@ -55,8 +61,20 @@ Reply me(Ctx& c) {
     return okReply({{"user_id", c.user->userId}, {"username", c.user->username}, {"role", c.user->role}});
 }
 
-// GET /api/health : process is up and products are loaded (no database call, so it never wakes a sleeping database)
-Reply health(Ctx& c) { return okReply({{"status", "up"}, {"products", c.app.inv.size()}}); }
+// GET /api/health : process is up and products are loaded. No database call (Render polls it and it must not wake a
+// sleeping database). GET /api/health?deep=1 also runs SELECT 1, to prove the database answers (used by scripts/warmup.sh).
+Reply health(Ctx& c) {
+    json out = {{"status", "up"}, {"products", c.app.inv.size()}};
+    if (c.q("deep") == "1") {
+        try {
+            c.app.db.execute("SELECT 1", {}, nullptr);
+            out["database"] = "ok";
+        } catch (const DbError& e) {
+            return errReply(503, "DATABASE_UNAVAILABLE", e.what(), e.errNo);
+        }
+    }
+    return okReply(out);
+}
 
 }  // namespace
 

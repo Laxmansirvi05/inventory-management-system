@@ -1,13 +1,13 @@
 {
  "data": [
   {
-   "created_at": "2026-11-07 15:13:42",
+   "created_at": "2026-11-08 08:19:26",
    "role": "ADMIN",
    "user_id": 1,
    "username": "admin"
   },
   {
-   "created_at": "2026-11-07 15:13:42",
+   "created_at": "2026-11-08 08:19:26",
    "role": "EMPLOYEE",
    "user_id": 2,
    "username": "employee"
@@ -19,8 +19,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.325333,
+   "ms": 0.399583,
    "result": {
     "columns": [
      "user_id",
@@ -33,13 +34,13 @@
       "1",
       "admin",
       "ADMIN",
-      "2026-11-07 15:13:42"
+      "2026-11-08 08:19:26"
      ],
      [
       "2",
       "employee",
       "EMPLOYEE",
-      "2026-11-07 15:13:42"
+      "2026-11-08 08:19:26"
      ]
     ],
     "total": 2

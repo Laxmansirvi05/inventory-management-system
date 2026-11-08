@@ -3,7 +3,7 @@
   {
    "customer_name": "Walk-in Customer",
    "item_lines": 1,
-   "sale_date": "2026-11-07",
+   "sale_date": "2026-11-08",
    "sale_id": 26,
    "total_amount": 70.0,
    "units_sold": 2
@@ -215,8 +215,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 1.684708,
+   "ms": 1.751958,
    "result": {
     "columns": [
      "sale_id",
@@ -229,7 +230,7 @@
     "rows": [
      [
       "26",
-      "2026-11-07",
+      "2026-11-08",
       "Walk-in Customer",
       "70.00",
       "1",

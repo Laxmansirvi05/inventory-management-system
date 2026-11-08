@@ -27,6 +27,10 @@ Base URL `/api` · JSON · session cookie after login · **every write response 
 | GET | /reports | any | List of report names | |
 | GET/POST/PUT/DELETE | /users | admin | User management (password hash never returned or shown) | hashing |
 | GET | /model | admin | Tables, columns, keys from `information_schema` | catalog |
+| GET | /products/sku-check?sku= | any | Is this SKU taken? (memory, no SQL) | hash set |
+| GET | /products/{id}?via=hash\|binary | any | Same lookup with a hash map or with binary search over the id-ordered tree map | hash map, tree map, binary search |
+| POST | /system/reload | admin | Re-read the products from MySQL (after the database was changed outside the app); clears the undo history | |
+| GET | /health[?deep=1] | public | Process is up; `deep=1` also runs `SELECT 1` and reports `database: ok` or 503 | |
 
 The earlier `/lab/*` endpoints were dropped when the frontend scope changed (see `09-Frontend-Plan.md` section 1).
 
@@ -35,6 +39,7 @@ Error codes: `UNAUTHENTICATED` 401, `FORBIDDEN` 403, `NOT_FOUND` 404, `DUPLICATE
 `GET /products` and `/alerts/low-stock` are served from the in-memory structures and therefore carry an empty `sql_log`.
 Query parameters of `GET /products`: `search` (id or name), `category` (id), `sort` (`price`, `qty`, `name`), `order` (`asc`, `desc`).
 Photos: `POST /products/{id}/photo` takes the raw image bytes as the body (PNG, JPEG, GIF or WebP, at most 1 MB); `GET` returns the image.
+`POST /undo` (admin) removes the newest sale or purchase made since the server started (all its lines) and puts the stock back; the reply is `{kind, document_id, lines, undo_depth}`; 409 `CANNOT_UNDO` if a purchase's stock was already sold. `GET /dashboard` also returns `in_sync` (memory against database). Changes requested from another site get 403 `CROSS_SITE`; too many failed sign-ins get 429 `TOO_MANY_ATTEMPTS`.
 Employees may record sales and purchases and add/edit customers; everything else that writes is admin-only.
 
 **Example – POST /api/sales**

@@ -67,7 +67,7 @@ std::vector<Product> Inventory::inIdOrder() const {
 }
 
 // Shared stock change. delta > 0 adds stock, delta < 0 removes it. Never lets stock go below 0.
-TxnResult Inventory::change(int productId, int delta, const std::string& kind, bool recordUndo) {
+TxnResult Inventory::change(int productId, int delta, const std::string& kind, bool recordUndo, int docId) {
     TxnResult r;
     r.productId = productId;
     Product* p = findById(productId);
@@ -83,19 +83,19 @@ TxnResult Inventory::change(int productId, int delta, const std::string& kind, b
     r.after = p->qty;
     r.ok = true;
     r.message = "OK";
-    if (recordUndo) undo_.push(StockTxn{productId, delta, kind});   // O(1)
+    if (recordUndo) undo_.push(StockTxn{productId, delta, kind, docId});   // O(1)
     alerts_ = buildAlerts(items_);                                  // re-evaluate low-stock queue
     return r;
 }
 
-TxnResult Inventory::purchase(int productId, int qty) {
+TxnResult Inventory::purchase(int productId, int qty, int docId) {
     if (qty <= 0) { TxnResult r; r.productId = productId; r.message = "Quantity must be greater than 0"; return r; }
-    return change(productId, qty, "PURCHASE", true);
+    return change(productId, qty, "PURCHASE", true, docId);
 }
 
-TxnResult Inventory::sell(int productId, int qty) {
+TxnResult Inventory::sell(int productId, int qty, int docId) {
     if (qty <= 0) { TxnResult r; r.productId = productId; r.message = "Quantity must be greater than 0"; return r; }
-    return change(productId, -qty, "SALE", true);
+    return change(productId, -qty, "SALE", true, docId);
 }
 
 // Reverse the newest transaction. If reversing would make stock negative (stock was sold since),
@@ -109,3 +109,21 @@ TxnResult Inventory::undoLast() {
 }
 
 std::vector<LowStockItem> Inventory::lowStockAlerts() const { return alertsInOrder(alerts_); }
+
+// Reverse the newest sale or purchase as a whole: every line or none. Stock may never go negative.
+TxnResult Inventory::undoGroupApply() {
+    TxnResult r;
+    std::vector<StockTxn> group = undo_.topGroup();
+    if (group.empty()) { r.message = "Nothing to undo"; return r; }
+    for (const StockTxn& t : group) {                                   // check first, change afterwards
+        const Product* p = findById(t.productId);
+        if (!p || p->qty - t.delta < 0) {
+            r.productId = t.productId;
+            r.message = "Insufficient stock to undo for product " + std::to_string(t.productId);
+            return r;
+        }
+    }
+    for (const StockTxn& t : group) r = change(t.productId, -t.delta, "UNDO", false);
+    undo_.popGroup(group.size());
+    return r;
+}

@@ -14,6 +14,8 @@ Everything below the line "Steps" needs **your** accounts (GitHub, Aiven, Render
 | Loading the scripts into **Aiven** itself (trigger privilege, see step 3) | **Not tested** (needs your account) |
 | Deploying on **Render** (build time and memory on the free plan) | **Not tested** (needs your account) |
 | `scripts/load_roles.sh` (GRANT/REVOKE) on Aiven | **Not tested** |
+| `scripts/test_on_aiven.sh` (full suites on a throwaway Aiven database) | Tested against local MySQL; **not run on Aiven** (needs your password) |
+| PBKDF2 passwords, document-level undo, reload, fair lock, origin check | Tested (core, auth, database, API suites and the Linux image) |
 
 ## Steps
 
@@ -60,6 +62,13 @@ Optional DCL accounts (needs permission to create users): `ROLE_ADMIN_PASSWORD=.
 `render.yaml` sets the region to Singapore so the app sits next to an Aiven service in Singapore; if your database is elsewhere, change `region` to match. `PORT` is set by Render itself. The health check is `GET /api/health`.
 3. First build compiles the C++ code and can take several minutes. If the build runs out of memory on the free plan, change `-j2` to `-j1` in the `Dockerfile`.
 
+### Upgrading a service that is already deployed (needed once for this release)
+This release adds triggers and stricter foreign keys. **Migrate first, then deploy:**
+1. `scripts/migrate_aiven.sh <aiven host> <aiven port>` in the Terminal panel. It keeps all data. The version that is live today keeps working on the migrated database (tested with its own suite, 119/119).
+2. Render → **Manual Deploy** (`autoDeploy` is off). The new server checks the schema at start; if you deploy first it refuses to start with a clear message and the old version stays live until you migrate.
+3. Optional: `scripts/test_on_aiven.sh <host> <port>` runs every suite on a throwaway database on Aiven.
+Passwords of existing users are upgraded to PBKDF2 automatically at their next sign-in.
+
 ### 5. Smoke-test the live URL
 Log in as admin → Dashboard shows 60 products → open **Live SQL** → add a product → make a sale → try a sale with a too-large quantity (admin checkbox) and see error 1644 with ROLLBACK → Reports → Database Model.
 
@@ -69,9 +78,26 @@ The two web logins are the passwords you chose in step 3. Change them any time u
 ## Wake-up checklist (free tiers sleep when idle)
 Do this **10 minutes before a demo**:
 1. Aiven console: the service says **Running** (power it on if it does not).
-2. Open `https://<your-app>.onrender.com/api/health` and wait for `{"status":"up",...}`. A cold start can take a minute.
+2. Run `scripts/warmup.sh https://<your-app>.onrender.com`. It wakes the site and waits until the web app **and** the database both answer (up to 8 minutes), then prints `READY`.
 3. Log in, open **Live SQL**, make one sale, undo it.
 4. Have the local copy ready as a backup: `scripts/load_db.sh ims`, then `build/ims` and open `http://localhost:8080`.
+5. Do not push to GitHub during the demo. `render.yaml` sets `autoDeploy: false`, so a push does not redeploy; to deploy a new version, use Render → Manual Deploy.
+
+## Tools in `scripts/`
+| Script | Use |
+|---|---|
+| `load_db.sh`, `load_aiven.sh` | create the tables, triggers, views and seed data (the second asks for the three passwords itself) |
+| `warmup.sh <url>` | wake the live site and wait until app and database answer |
+| `backup_db.sh [db] [file]` | save tables, data, triggers and views to one `.sql` file (move to another MySQL, or keep a copy) |
+| `test_on_aiven.sh <host> <port>` | run all test suites against a throwaway database on Aiven (asks for your password; drops it afterwards) |
+| `run_syllabus_demo.sh [db]` | run `sql/syllabus_demo.sql` |
+| `make_mock.py <url>` | refresh the sample data of `?mock=1` (localhost only) |
+
+## If the database is changed outside the app
+The server keeps a copy of the products in memory. If you edit the database directly (the Aiven console, a `mysql` session, re-running `load_db.sh`), the dashboard shows a banner saying so, with a **Reload from database** button (admin). Reloading also clears the undo history.
+
+## When the Aiven trial ends (about 6–7 December 2026)
+Run `scripts/backup_db.sh defaultdb` against Aiven (same `MYSQL_*` variables as the load script) to save everything, then either upgrade the service plan, or restore the file into any MySQL 8 (`mysql ... <database> < backup.sql`) and point `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` and `DB_SSL_CA_PEM` of the Render service at it.
 
 ## Fallback: run everything locally
 ```bash

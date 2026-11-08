@@ -34,6 +34,7 @@ struct SqlEntry {
     SqlResultTable result;
     std::vector<SqlTriggerNote> triggers;
     SqlSnapshot before, after;
+    bool helper = false;            // a read the server ran only to describe a change (the Before/After boxes)
     unsigned errNo = 0;             // 0 = success
     std::string error;
     double ms = 0;
@@ -43,6 +44,7 @@ class SqlLog {
 public:
     SqlEntry& add(SqlEntry e);                  // assigns the sequence number
     SqlEntry& last() { return entries_.back(); }
+    SqlEntry& at(size_t i) { return entries_[i]; }       // by position: references from last() die at the next add()
     bool empty() const { return entries_.empty(); }
     size_t size() const { return entries_.size(); }
     const std::vector<SqlEntry>& entries() const { return entries_; }

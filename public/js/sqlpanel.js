@@ -80,8 +80,8 @@ IMS.sql = (function () {
 
   // one statement card
   function statement(e) {
-    return h('div', { class: 'sql-stmt' + (e.error ? ' err' : '') },
-      h('div', { class: 'sql-top' }, h('span', {}, '#' + e.seq), h('span', { class: 'grow' }, e.kind), h('span', {}, (Math.round(e.ms * 100) / 100) + ' ms')),
+    return h('div', { class: 'sql-stmt' + (e.error ? ' err' : '') + (e.helper ? ' helper' : '') },
+      h('div', { class: 'sql-top' }, h('span', {}, '#' + e.seq), h('span', { class: 'grow' }, e.kind + (e.helper ? ' · helper read for the Before/After boxes' : '')), h('span', {}, (Math.round(e.ms * 100) / 100) + ' ms')),
       highlight(e.sql), output(e),
       (e.triggers || []).map((t) => h('div', { class: 'sql-trg ' + t.level }, h('b', {}, t.name + ': '), t.note)),
       e.before || e.after ? h('div', { class: 'sql-ba' }, e.before ? snapshot('Before', e.before) : h('div', {}), e.after ? snapshot('After', e.after) : h('div', {})) : null,

@@ -1,13 +1,6 @@
 {
  "data": [
   {
-   "item_lines": 1,
-   "purchase_date": "2026-11-07",
-   "purchase_id": 13,
-   "supplier_name": "Value Mart Agencies",
-   "total_amount": 800.0
-  },
-  {
    "item_lines": 4,
    "purchase_date": "2026-09-23",
    "purchase_id": 12,
@@ -98,8 +91,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.34675,
+   "ms": 0.999375,
    "result": {
     "columns": [
      "purchase_id",
@@ -109,13 +103,6 @@
      "item_lines"
     ],
     "rows": [
-     [
-      "13",
-      "2026-11-07",
-      "Value Mart Agencies",
-      "800.00",
-      "1"
-     ],
      [
       "12",
       "2026-09-23",
@@ -143,9 +130,16 @@
       "Metro Wholesale",
       "9859.00",
       "4"
+     ],
+     [
+      "8",
+      "2026-07-11",
+      "Value Mart Agencies",
+      "5352.00",
+      "4"
      ]
     ],
-    "total": 13
+    "total": 12
    },
    "rows_affected": null,
    "seq": 1,

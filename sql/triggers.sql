@@ -1,9 +1,16 @@
--- triggers.sql : three triggers that keep stock, totals and the ledger consistent.
+-- triggers.sql : seven triggers that keep stock, totals and the ledger consistent.
+--   insert of a line : trg_purchase_items_ai, trg_sale_items_bi (stock check), trg_sale_items_ai
+--   delete of a line : trg_purchase_items_ad, trg_sale_items_ad   (used by Undo)
+--   edit of a line   : trg_purchase_items_bu, trg_sale_items_bu   (refused)
 -- Load with the mysql client (DELIMITER is a client command).
 
 DROP TRIGGER IF EXISTS trg_purchase_items_ai;
 DROP TRIGGER IF EXISTS trg_sale_items_bi;
 DROP TRIGGER IF EXISTS trg_sale_items_ai;
+DROP TRIGGER IF EXISTS trg_sale_items_ad;
+DROP TRIGGER IF EXISTS trg_sale_items_bu;
+DROP TRIGGER IF EXISTS trg_purchase_items_ad;
+DROP TRIGGER IF EXISTS trg_purchase_items_bu;
 
 DELIMITER $$
 
@@ -42,6 +49,43 @@ BEGIN
      WHERE sale_id = NEW.sale_id;
     INSERT INTO Stock_Transactions (product_id, txn_type, quantity_change, reference_id, remarks)
     VALUES (NEW.product_id, 'SALE', -NEW.quantity, NEW.sale_id, 'Stock sold');
+END$$
+
+-- Removing a sale line (Undo): put the stock back, lower the sale total, write an UNDO ledger row.
+CREATE TRIGGER trg_sale_items_ad AFTER DELETE ON Sale_Items
+FOR EACH ROW
+BEGIN
+    UPDATE Products SET stock_quantity = stock_quantity + OLD.quantity
+     WHERE product_id = OLD.product_id;
+    UPDATE Sales SET total_amount = total_amount - OLD.quantity * OLD.unit_price
+     WHERE sale_id = OLD.sale_id;
+    INSERT INTO Stock_Transactions (product_id, txn_type, quantity_change, reference_id, remarks)
+    VALUES (OLD.product_id, 'UNDO', OLD.quantity, OLD.sale_id, 'Sale line removed');
+END$$
+
+-- Removing a purchase line: take the stock out again (the CHECK stock >= 0 refuses it if it was already sold).
+CREATE TRIGGER trg_purchase_items_ad AFTER DELETE ON Purchase_Items
+FOR EACH ROW
+BEGIN
+    UPDATE Products SET stock_quantity = stock_quantity - OLD.quantity
+     WHERE product_id = OLD.product_id;
+    UPDATE Purchases SET total_amount = total_amount - OLD.quantity * OLD.unit_cost
+     WHERE purchase_id = OLD.purchase_id;
+    INSERT INTO Stock_Transactions (product_id, txn_type, quantity_change, reference_id, remarks)
+    VALUES (OLD.product_id, 'UNDO', -OLD.quantity, OLD.purchase_id, 'Purchase line removed');
+END$$
+
+-- Lines are never edited in place: an edit would change the price or quantity without moving stock.
+CREATE TRIGGER trg_sale_items_bu BEFORE UPDATE ON Sale_Items
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Sale lines cannot be edited: remove the sale and record it again';
+END$$
+
+CREATE TRIGGER trg_purchase_items_bu BEFORE UPDATE ON Purchase_Items
+FOR EACH ROW
+BEGIN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Purchase lines cannot be edited: remove the purchase and record it again';
 END$$
 
 DELIMITER ;

@@ -15,6 +15,9 @@ import urllib.request
 from http.cookiejar import CookieJar
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8099"
+import os
+ADMIN_PW = os.environ.get("IMS_ADMIN_PASSWORD", "Admin@2026")      # demo passwords of a local test database
+STAFF_PW = os.environ.get("IMS_EMPLOYEE_PASSWORD", "Staff@2026")
 PNG = bytes.fromhex("89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360f8cfc0f01f0005000201a5f645400000000049454e44ae426082")
 passed = failed = 0
 
@@ -34,8 +37,8 @@ class Client:
     def __init__(self):
         self.opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(CookieJar()))
 
-    def call(self, method, path, body=None, raw=None, ctype=None):
-        data, headers = None, {}
+    def call(self, method, path, body=None, raw=None, ctype=None, extra=None):
+        data, headers = None, dict(extra or {})
         if body is not None:
             data, headers["Content-Type"] = json.dumps(body).encode(), "application/json"
         if raw is not None:
@@ -66,10 +69,10 @@ st, d = anon.j("POST", "/api/auth/login", {"username": "admin", "password": "wro
 check(st == 401 and d["error"]["code"] == "INVALID_CREDENTIALS", "wrong password -> 401")
 st, d = anon.j("POST", "/api/auth/login", {"username": "nobody", "password": "whatever1"})
 check(st == 401, "unknown user -> 401")
-st, d = admin.j("POST", "/api/auth/login", {"username": "admin", "password": "Admin@2026"})
+st, d = admin.j("POST", "/api/auth/login", {"username": "admin", "password": ADMIN_PW})
 check(st == 200 and d["data"]["role"] == "ADMIN", "admin login ok")
 check(d["sql_log"] == [], "login response carries no SQL (password hash never exposed)")
-st, d = emp.j("POST", "/api/auth/login", {"username": "employee", "password": "Staff@2026"})
+st, d = emp.j("POST", "/api/auth/login", {"username": "employee", "password": STAFF_PW})
 check(st == 200 and d["data"]["role"] == "EMPLOYEE", "employee login ok")
 check(admin.j("GET", "/api/auth/me")[1]["data"]["username"] == "admin", "/auth/me returns the user")
 check(anon.j("POST", "/api/auth/login", {"username": "admin"})[0] == 400, "missing password -> 400")
@@ -77,7 +80,7 @@ codes = [anon.j("POST", "/api/auth/login", {"username": "throttle.test", "passwo
 check(codes[:5] == [401] * 5 and codes[5] == 429, "6th wrong password for one user name is blocked (429)")
 st, d = anon.j("POST", "/api/auth/login", {"username": "throttle.test", "password": "bad7"})
 check(st == 429 and d["error"]["code"] == "TOO_MANY_ATTEMPTS", "a blocked user name stays blocked and says why")
-check(Client().j("POST", "/api/auth/login", {"username": "employee", "password": "Staff@2026"})[0] == 200, "other users can still sign in meanwhile")
+check(Client().j("POST", "/api/auth/login", {"username": "employee", "password": STAFF_PW})[0] == 200, "other users can still sign in meanwhile")
 st, d, _ = anon.call("POST", "/api/auth/login", raw=b"{not json", ctype="application/json")
 check(st == 400 and d["error"]["code"] == "INVALID_JSON", "broken JSON -> 400")
 
@@ -160,15 +163,37 @@ print("[T8 purchases, T12 alerts, T13 undo]")
 before9 = admin.j("GET", "/api/products/9")[1]["data"]["stock_quantity"]
 st, d = emp.j("POST", "/api/purchases", {"supplier_id": 5, "items": [{"product_id": 9, "quantity": 40, "unit_cost": 20}]})
 check(st == 201 and d["data"]["total"] == 800.0, "T8 purchase total 800.00")
+pur_id = d["data"]["purchase_id"]
 check(admin.j("GET", "/api/products/9")[1]["data"]["stock_quantity"] == before9 + 40, "T8 stock raised")
 check(len(admin.j("GET", "/api/purchases")[1]["data"]) >= 1, "purchase history")
 al = admin.j("GET", "/api/alerts/low-stock")[1]["data"]
 ratios = [a["ratio"] for a in al]
 check(len(al) >= 1 and ratios == sorted(ratios), "T12 alerts listed most urgent first")
 st, d = admin.j("POST", "/api/undo")
-check(st == 200 and d["data"]["product_id"] == 9 and d["data"]["stock_quantity"] == before9, "T13 undo reverses the purchase")
+check(st == 200 and d["data"]["kind"] == "PURCHASE" and d["data"]["document_id"] == pur_id and d["data"]["lines"] == 1, "T13 undo removes the whole purchase")
+check(admin.j("GET", "/api/products/9")[1]["data"]["stock_quantity"] == before9, "T13 stock is back where it was")
+check(all(p["purchase_id"] != pur_id for p in admin.j("GET", "/api/purchases")[1]["data"]), "the undone purchase is gone from the history, so reports agree with stock")
 rec = admin.j("GET", "/api/transactions/recent")[1]["data"]
-check(rec[0]["txn_type"] == "UNDO" and rec[0]["quantity_change"] == -40, "T13 ledger shows an UNDO row")
+check(rec[0]["txn_type"] == "UNDO" and rec[0]["quantity_change"] == -40, "T13 ledger shows an UNDO row (written by the delete trigger)")
+log = d["sql_log"]
+check(any("DELETE FROM Purchase_Items" in e["sql"] and e["triggers"] and e["before"] and e["after"] for e in log) and log[-1]["sql"] == "COMMIT", "undo shows the delete, its trigger note and before/after stock in Live SQL")
+
+print("[undo of sales]")
+b6 = admin.j("GET", "/api/products/6")[1]["data"]["stock_quantity"]
+b7 = admin.j("GET", "/api/products/7")[1]["data"]["stock_quantity"]
+st, d = emp.j("POST", "/api/sales", {"customer_id": 1, "items": [{"product_id": 6, "quantity": 3}]})
+sid1 = d["data"]["sale_id"]
+check(any(e["helper"] for e in d["sql_log"]) and any(not e["helper"] for e in d["sql_log"]), "sale log marks the helper reads (Before/After lookups) separately")
+st, d = admin.j("POST", "/api/undo")
+check(st == 200 and d["data"]["kind"] == "SALE" and d["data"]["document_id"] == sid1, "undo of a sale removes that sale")
+check(admin.j("GET", "/api/products/6")[1]["data"]["stock_quantity"] == b6, "stock of the sale is back")
+check(admin.j("GET", "/api/sales/%d/bill" % sid1)[0] == 404 and all(x["sale_id"] != sid1 for x in admin.j("GET", "/api/sales")[1]["data"]), "the undone sale has no bill and no history row")
+check(find(admin.j("GET", "/api/sales/queue")[1]["data"]["orders"], sale_id=sid1) is None or find(admin.j("GET", "/api/sales/queue")[1]["data"]["orders"], sale_id=sid1)["status"] == "undone", "order queue card does not claim the removed sale is done")
+st, d = emp.j("POST", "/api/sales", {"customer_id": 1, "items": [{"product_id": 6, "quantity": 1}, {"product_id": 7, "quantity": 1}]})
+sid2 = d["data"]["sale_id"]
+st, d = admin.j("POST", "/api/undo")
+check(st == 200 and d["data"]["lines"] == 2, "undo of a two-line sale removes both lines together")
+check(admin.j("GET", "/api/products/6")[1]["data"]["stock_quantity"] == b6 and admin.j("GET", "/api/products/7")[1]["data"]["stock_quantity"] == b7, "both products are back")
 
 print("[T14 foreign keys]")
 st, d = admin.j("DELETE", "/api/categories/1")
@@ -256,6 +281,21 @@ st, d, _ = anon.call("POST", "/api/auth/login", raw=b"a" * 3000000, ctype="appli
 check(st == 413 and d["error"]["code"] == "TOO_LARGE", "an oversized body is answered 413 TOO_LARGE, not a false 404")
 st, d = admin.j("POST", "/api/sales", {"items": [{"product_id": 6, "quantity": 2000000}]})
 check(st == 400 and "1,000,000" in d["error"]["message"], "a quantity above 1,000,000 is refused before it reaches MySQL")
+
+hd = admin.j("GET", "/api/health?deep=1")
+check(hd[0] == 200 and hd[1]["data"]["database"] == "ok", "deep health check proves the database answers")
+check(anon.j("GET", "/api/health")[1]["data"].get("database") is None, "plain health check makes no database call")
+evil = admin.call("PUT", "/api/categories/9999", {"category_name": "x"}, extra={"Origin": "https://evil.example"})
+check(evil[0] == 403 and evil[1]["error"]["code"] == "CROSS_SITE", "a change requested from another site is refused (403 CROSS_SITE)")
+own = admin.call("PUT", "/api/categories/9999", {"category_name": "x"}, extra={"Origin": BASE})
+check(own[0] == 404, "the same request from our own site gets through (404: no such category)")
+check(admin.call("PUT", "/api/categories/9999", {"category_name": "x"}, extra={"Origin": "null"})[0] == 403, "Origin 'null' is refused as well")
+dash = admin.j("GET", "/api/dashboard")[1]["data"]
+check(dash["in_sync"] is True and dash["database"]["products"] == dash["products"], "dashboard reports memory and database in step")
+check(emp.j("POST", "/api/system/reload")[0] == 403, "employee cannot reload from the database")
+st, d = admin.j("POST", "/api/system/reload")
+check(st == 200 and d["data"]["products"] == dash["products"] and any("SELECT" in e["sql"] for e in d["sql_log"]), "admin reload re-reads the products with SQL")
+check(admin.j("GET", "/api/dashboard")[1]["data"]["undo_depth"] == 0, "reload clears the undo history")
 
 print("[misc]")
 st, d = admin.j("GET", "/api/nope")

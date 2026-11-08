@@ -23,6 +23,14 @@ PRIMARY KEY, FOREIGN KEY (RESTRICT/CASCADE), UNIQUE (sku, phone, email, username
 | trg_purchase_items_ai | AFTER INSERT on Purchase_Items | stock += qty, purchase total += line, ledger row |
 | trg_sale_items_bi | BEFORE INSERT on Sale_Items | SIGNAL error if qty > stock |
 | trg_sale_items_ai | AFTER INSERT on Sale_Items | stock -= qty, sale total += line, ledger row |
+| trg_sale_items_ad | AFTER DELETE on Sale_Items | stock += qty, sale total -= line, ledger row (UNDO). Used by Undo |
+| trg_purchase_items_ad | AFTER DELETE on Purchase_Items | stock -= qty (CHECK refuses if already sold), purchase total -= line, ledger row (UNDO) |
+| trg_sale_items_bu | BEFORE UPDATE on Sale_Items | SIGNAL error: lines are never edited in place |
+| trg_purchase_items_bu | BEFORE UPDATE on Purchase_Items | SIGNAL error: lines are never edited in place |
+
+**Why the CHECK matters more than the trigger:** `trg_sale_items_bi` reads the stock without locking it, so two buyers at the same moment can both pass it. `CHECK (stock_quantity >= 0)` on `Products` then stops the second one when its stock update runs (tested: stock 10, exactly one sale). Do not remove the CHECK.
+**No silent cascade:** `Sale_Items` and `Purchase_Items` reference their sale or purchase with `ON DELETE RESTRICT`. A cascade would delete lines without firing triggers and leave stock, totals and ledger out of step; lines are deleted explicitly instead (Undo).
+**Passwords:** `Users.password_hash` holds `pbkdf2-sha256$rounds$salt$hex` (PBKDF2-HMAC-SHA256, 100,000 rounds).
 
 ## Views
 `v_low_stock`, `v_sales_summary`, `v_product_catalogue`.

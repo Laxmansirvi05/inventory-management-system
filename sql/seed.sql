@@ -301,7 +301,7 @@ INSERT INTO Sale_Items (sale_id, product_id, quantity, unit_price) VALUES
 (25,19,6,99),
 (25,45,166,99);
 
--- password_hash = salt$sha256hex(salt+password)
+-- password_hash = pbkdf2-sha256$iterations$salt$hex (PBKDF2-HMAC-SHA256, 100000 rounds)
 INSERT INTO Users (username, password_hash, role) VALUES
-('admin','007487f8b71b4534$4b66fe48118382d3ff453e758314d95e505556f38f51b738d94c551a184d94eb','ADMIN'),
-('employee','43b59c45cd797af6$426bf8b94d7efe2e1ab6b94bd4b1e4282d8473303549c54d574e2fbdcec00e95','EMPLOYEE');
+('admin','pbkdf2-sha256$100000$9f2c54993b608f28$898a9210666965aba88d33e0cabf8f2993ad8616057b8e90137e47a2498f2ab7','ADMIN'),
+('employee','pbkdf2-sha256$100000$c55299886dfc889e$074b9eb922b64c5396cb2a6a000518ee56d3291c07ec2712ad169548c48356ef','EMPLOYEE');

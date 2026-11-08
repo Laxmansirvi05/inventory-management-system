@@ -47,8 +47,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.376042,
+   "ms": 0.337292,
    "result": {
     "columns": [
      "supplier_id",

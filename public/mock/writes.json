@@ -10,8 +10,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.104416,
+    "ms": 0.21025,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -22,12 +23,36 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 0.487291,
+    "ms": 0.721667,
     "result": null,
     "rows_affected": 1,
     "seq": 2,
     "sql": "INSERT INTO Purchases (supplier_id) VALUES (5)",
+    "triggers": []
+   },
+   {
+    "after": null,
+    "before": null,
+    "error": null,
+    "helper": true,
+    "kind": "DQL",
+    "ms": 0.419125,
+    "result": {
+     "columns": [
+      "stock_quantity"
+     ],
+     "rows": [
+      [
+       "71"
+      ]
+     ],
+     "total": 1
+    },
+    "rows_affected": null,
+    "seq": 3,
+    "sql": "SELECT stock_quantity FROM Products WHERE product_id = 9",
     "triggers": []
    },
    {
@@ -46,11 +71,12 @@
      "table": "Products"
     },
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 1.985042,
+    "ms": 2.767167,
     "result": null,
     "rows_affected": 1,
-    "seq": 3,
+    "seq": 4,
     "sql": "INSERT INTO Purchase_Items (purchase_id, product_id, quantity, unit_cost) VALUES (13, 9, 40, 20.00)",
     "triggers": [
      {
@@ -64,8 +90,32 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": true,
     "kind": "DQL",
-    "ms": 0.289917,
+    "ms": 0.373833,
+    "result": {
+     "columns": [
+      "stock_quantity"
+     ],
+     "rows": [
+      [
+       "111"
+      ]
+     ],
+     "total": 1
+    },
+    "rows_affected": null,
+    "seq": 5,
+    "sql": "SELECT stock_quantity FROM Products WHERE product_id = 9",
+    "triggers": []
+   },
+   {
+    "after": null,
+    "before": null,
+    "error": null,
+    "helper": false,
+    "kind": "DQL",
+    "ms": 0.295792,
     "result": {
      "columns": [
       "total_amount"
@@ -78,7 +128,7 @@
      "total": 1
     },
     "rows_affected": null,
-    "seq": 4,
+    "seq": 6,
     "sql": "SELECT total_amount FROM Purchases WHERE purchase_id = 13",
     "triggers": []
    },
@@ -86,11 +136,12 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.488125,
+    "ms": 0.9865,
     "result": null,
     "rows_affected": null,
-    "seq": 5,
+    "seq": 7,
     "sql": "COMMIT",
     "triggers": []
    }
@@ -98,8 +149,9 @@
  },
  "undo_ok": {
   "data": {
-   "product_id": 9,
-   "stock_quantity": 71,
+   "document_id": 13,
+   "kind": "PURCHASE",
+   "lines": 1,
    "undo_depth": 0
   },
   "ok": true,
@@ -108,12 +160,59 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.126375,
+    "ms": 0.143834,
     "result": null,
     "rows_affected": null,
     "seq": 1,
     "sql": "START TRANSACTION",
+    "triggers": []
+   },
+   {
+    "after": null,
+    "before": null,
+    "error": null,
+    "helper": true,
+    "kind": "DQL",
+    "ms": 0.3615,
+    "result": {
+     "columns": [
+      "stock_quantity"
+     ],
+     "rows": [
+      [
+       "111"
+      ]
+     ],
+     "total": 1
+    },
+    "rows_affected": null,
+    "seq": 2,
+    "sql": "SELECT stock_quantity FROM Products WHERE product_id = 9",
+    "triggers": []
+   },
+   {
+    "after": null,
+    "before": null,
+    "error": null,
+    "helper": true,
+    "kind": "DQL",
+    "ms": 0.272041,
+    "result": {
+     "columns": [
+      "stock_quantity"
+     ],
+     "rows": [
+      [
+       "111"
+      ]
+     ],
+     "total": 1
+    },
+    "rows_affected": null,
+    "seq": 3,
+    "sql": "SELECT stock_quantity FROM Products WHERE product_id = 9",
     "triggers": []
    },
    {
@@ -132,35 +231,67 @@
      "table": "Products"
     },
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 0.614375,
+    "ms": 1.4105,
     "result": null,
     "rows_affected": 1,
-    "seq": 2,
-    "sql": "UPDATE Products SET stock_quantity = stock_quantity + -40 WHERE product_id = 9",
+    "seq": 4,
+    "sql": "DELETE FROM Purchase_Items WHERE purchase_id = 13 AND product_id = 9",
+    "triggers": [
+     {
+      "level": "action",
+      "name": "trg_purchase_items_ad",
+      "note": "stock 111 -> 71, document total lowered, UNDO ledger row added"
+     }
+    ]
+   },
+   {
+    "after": null,
+    "before": null,
+    "error": null,
+    "helper": true,
+    "kind": "DQL",
+    "ms": 0.396875,
+    "result": {
+     "columns": [
+      "stock_quantity"
+     ],
+     "rows": [
+      [
+       "71"
+      ]
+     ],
+     "total": 1
+    },
+    "rows_affected": null,
+    "seq": 5,
+    "sql": "SELECT stock_quantity FROM Products WHERE product_id = 9",
     "triggers": []
    },
    {
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 0.345833,
+    "ms": 0.428792,
     "result": null,
     "rows_affected": 1,
-    "seq": 3,
-    "sql": "INSERT INTO Stock_Transactions (product_id, txn_type, quantity_change, reference_id, remarks) VALUES (9, 'UNDO', -40, NULL, 'Undo of last PURCHASE')",
+    "seq": 6,
+    "sql": "DELETE FROM Purchases WHERE purchase_id = 13",
     "triggers": []
    },
    {
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.402334,
+    "ms": 0.459875,
     "result": null,
     "rows_affected": null,
-    "seq": 4,
+    "seq": 7,
     "sql": "COMMIT",
     "triggers": []
    }
@@ -178,8 +309,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.110125,
+    "ms": 0.128,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -190,8 +322,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 0.410875,
+    "ms": 0.50325,
     "result": null,
     "rows_affected": 1,
     "seq": 2,
@@ -202,8 +335,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DQL",
-    "ms": 0.26475,
+    "ms": 0.335666,
     "result": {
      "columns": [
       "unit_price",
@@ -238,8 +372,9 @@
      "table": "Products"
     },
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 1.402792,
+    "ms": 1.740417,
     "result": null,
     "rows_affected": 1,
     "seq": 4,
@@ -261,8 +396,32 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": true,
     "kind": "DQL",
-    "ms": 0.23725,
+    "ms": 0.293833,
+    "result": {
+     "columns": [
+      "stock_quantity"
+     ],
+     "rows": [
+      [
+       "110"
+      ]
+     ],
+     "total": 1
+    },
+    "rows_affected": null,
+    "seq": 5,
+    "sql": "SELECT stock_quantity FROM Products WHERE product_id = 6",
+    "triggers": []
+   },
+   {
+    "after": null,
+    "before": null,
+    "error": null,
+    "helper": false,
+    "kind": "DQL",
+    "ms": 0.343875,
     "result": {
      "columns": [
       "total_amount"
@@ -275,7 +434,7 @@
      "total": 1
     },
     "rows_affected": null,
-    "seq": 5,
+    "seq": 6,
     "sql": "SELECT total_amount FROM Sales WHERE sale_id = 26",
     "triggers": []
    },
@@ -283,11 +442,12 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.343709,
+    "ms": 0.611459,
     "result": null,
     "rows_affected": null,
-    "seq": 6,
+    "seq": 7,
     "sql": "COMMIT",
     "triggers": []
    }
@@ -306,8 +466,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.103416,
+    "ms": 0.151375,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -318,8 +479,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 0.277417,
+    "ms": 0.491125,
     "result": null,
     "rows_affected": 1,
     "seq": 2,
@@ -330,8 +492,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DQL",
-    "ms": 0.256208,
+    "ms": 0.375917,
     "result": {
      "columns": [
       "unit_price",
@@ -363,8 +526,9 @@
      "message": "Insufficient stock for product 6",
      "mysql_errno": 1644
     },
+    "helper": false,
     "kind": "DML",
-    "ms": 0.452459,
+    "ms": 0.582334,
     "result": null,
     "rows_affected": null,
     "seq": 4,
@@ -381,8 +545,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.253083,
+    "ms": 0.338792,
     "result": null,
     "rows_affected": null,
     "seq": 5,
@@ -404,8 +569,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.054084,
+    "ms": 0.121458,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -419,8 +585,9 @@
      "message": "Duplicate entry 'SKU0001' for key 'products.sku'",
      "mysql_errno": 1062
     },
+    "helper": false,
     "kind": "DML",
-    "ms": 0.191042,
+    "ms": 0.426959,
     "result": null,
     "rows_affected": null,
     "seq": 2,
@@ -431,8 +598,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.10675,
+    "ms": 0.227792,
     "result": null,
     "rows_affected": null,
     "seq": 3,
@@ -454,8 +622,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.099958,
+    "ms": 0.117667,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -469,8 +638,9 @@
      "message": "Check constraint 'chk_price' is violated.",
      "mysql_errno": 3819
     },
+    "helper": false,
     "kind": "DML",
-    "ms": 0.245417,
+    "ms": 0.284417,
     "result": null,
     "rows_affected": null,
     "seq": 2,
@@ -481,8 +651,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.09875,
+    "ms": 0.104167,
     "result": null,
     "rows_affected": null,
     "seq": 3,
@@ -504,8 +675,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.100208,
+    "ms": 0.11975,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -519,8 +691,9 @@
      "message": "Cannot delete or update a parent row: a foreign key constraint fails (`ims_test`.`products`, CONSTRAINT `fk_prod_cat` FOREIGN KEY (`category_id`) REFERENCES `categories` (`category_id`) ON DELETE RESTRICT ON UPDATE CASCADE)",
      "mysql_errno": 1451
     },
+    "helper": false,
     "kind": "DML",
-    "ms": 0.294416,
+    "ms": 0.311708,
     "result": null,
     "rows_affected": null,
     "seq": 2,
@@ -531,8 +704,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.108,
+    "ms": 0.120333,
     "result": null,
     "rows_affected": null,
     "seq": 3,
@@ -551,8 +725,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.097958,
+    "ms": 0.112584,
     "result": null,
     "rows_affected": null,
     "seq": 1,
@@ -563,8 +738,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "DML",
-    "ms": 0.275875,
+    "ms": 0.317042,
     "result": null,
     "rows_affected": 1,
     "seq": 2,
@@ -575,8 +751,9 @@
     "after": null,
     "before": null,
     "error": null,
+    "helper": false,
     "kind": "TCL",
-    "ms": 0.326042,
+    "ms": 0.464292,
     "result": null,
     "rows_affected": null,
     "seq": 3,

@@ -14,6 +14,8 @@ struct WriteResult {
     long long id = 0;           // new sale_id / purchase_id / product_id
     double total = 0.0;         // sale or purchase total as computed by the triggers
     long long affected = 0;     // rows matched by the statement (runStatement)
+    std::string kind;           // undo: "SALE" or "PURCHASE"
+    int lines = 0;              // undo: how many product lines the document had
     unsigned errNo = 0;         // MySQL error number when !ok (0 = not a MySQL error)
     std::string error;
 };
@@ -42,7 +44,8 @@ WriteResult deleteProductRow(Database& db, Inventory& inv, int productId, SqlLog
 // Any single INSERT/UPDATE/DELETE in its own transaction (categories, suppliers, customers, users).
 WriteResult runStatement(Database& db, const std::string& sql, const Params& params, SqlLog& log);
 
-// Reverse the newest stock transaction in MySQL (stock + an UNDO ledger row), then in memory.
+// Undo the newest sale or purchase as a whole: its lines are deleted (the delete triggers put the stock back and write
+// UNDO ledger rows), then the sale or purchase itself, then memory. Reports then agree with stock again.
 WriteResult undoLastTxn(Database& db, Inventory& inv, SqlLog& log);
 
 // Store a product photo (BLOB).

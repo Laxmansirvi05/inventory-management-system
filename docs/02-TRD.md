@@ -77,7 +77,11 @@ The DBMS report schema has 9 tables. The web app adds:
 **Assumption to confirm:** the DBMS report will be updated to include these.
 
 ## 9. Security
-Parameterised queries only; password hashing with a salt (SHA-256 via OpenSSL, or stronger if available); role checks on every endpoint; Lab query runner is whitelist-only (queries chosen by ID, no free SQL); secrets in environment variables; SSL to Aiven.
+- **SQL:** parameterised queries only; the few places that assemble SQL text use fixed table and column names.
+- **Passwords:** PBKDF2-HMAC-SHA256 with a random salt and 100,000 rounds; older SHA-256 hashes are accepted and replaced at the next login. Sign-in is throttled (5 failures per user name or 30 per address block that key for a minute, HTTP 429). Sessions are random server-side tokens in an HTTP-only, `SameSite=Lax` cookie (`Secure` over HTTPS), end after 8 hours, and end at once when the account is deleted, its role changes or its password is reset.
+- **Requests:** role check on every endpoint; changes requested from another site are refused (Origin check, 403); one request at a time in strict arrival order (fair ticket lock); body limit 2 MB, photos 1 MB, quantity per line 1,000,000.
+- **Responses:** Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy on every response (HSTS over HTTPS); only the fixed report list can be run; password hashes are never returned or shown in the SQL log.
+- **Operations:** secrets only in environment variables; TLS with certificate check to Aiven; after a dropped database connection the server reconnects by itself (retrying only outside transactions).
 
 ## 10. Configuration (environment variables)
 `DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME` (database), `DB_SSL_CA` (CA file path) or `DB_SSL_CA_PEM` (CA certificate text), `PORT`, `PUBLIC_DIR`, `SHOP_NAME`, `COOKIE_SECURE`. Sessions are server-side random tokens, so no `SESSION_SECRET` is needed.

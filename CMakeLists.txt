@@ -20,6 +20,8 @@ target_include_directories(imscore PUBLIC include)
 # Console tests for the core (Phases 2-3). No database needed.
 add_executable(core_tests tests/core_tests.cpp)
 target_link_libraries(core_tests imscore)
+find_package(Threads REQUIRED)
+target_link_libraries(core_tests Threads::Threads)
 
 # Database layer on the MySQL C API (Phase 4).
 find_path(MYSQL_INCLUDE_DIR mysql/mysql.h
@@ -58,5 +60,11 @@ add_executable(ims
 target_include_directories(ims SYSTEM PRIVATE third_party)
 target_link_libraries(ims imsdb OpenSSL::Crypto Threads::Threads)
 
+# Password hashing and sessions, tested without a database.
+add_executable(auth_tests tests/auth_tests.cpp src/auth.cpp)
+target_include_directories(auth_tests PRIVATE include)
+target_link_libraries(auth_tests OpenSSL::Crypto Threads::Threads)
+
 enable_testing()
 add_test(NAME core COMMAND core_tests)
+add_test(NAME auth COMMAND auth_tests)

@@ -5,10 +5,13 @@
 #include <mutex>
 #include <string>
 
-// "salt$sha256hex(salt + password)": the format stored in Users.password_hash.
+// Users.password_hash holds "pbkdf2-sha256$<iterations>$<salt>$<hex>". The older format "salt$sha256hex(salt+password)"
+// is still accepted and replaced by the new one the next time that user signs in (see needsRehash).
 std::string makeSalt();                                                  // 16 random hex characters
-std::string hashPassword(const std::string& password, const std::string& salt);
-bool verifyPassword(const std::string& password, const std::string& stored);   // constant-time compare
+std::string hashPassword(const std::string& password, const std::string& salt);   // new format, kPbkdf2Iterations rounds
+bool verifyPassword(const std::string& password, const std::string& stored);      // either format, constant-time compare
+bool needsRehash(const std::string& stored);                             // old format, or fewer rounds than today
+constexpr int kPbkdf2Iterations = 100000;
 std::string randomToken();                                               // 64 random hex characters
 
 struct Session {

@@ -12,7 +12,7 @@
   "sale": {
    "customer_name": "Walk-in Customer",
    "phone": "9000000000",
-   "sale_date": "2026-11-07",
+   "sale_date": "2026-11-08",
    "sale_id": 26,
    "total_amount": 70.0
   },
@@ -24,8 +24,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.423916,
+   "ms": 0.398,
    "result": {
     "columns": [
      "sale_id",
@@ -37,7 +38,7 @@
     "rows": [
      [
       "26",
-      "2026-11-07",
+      "2026-11-08",
       "70.00",
       "Walk-in Customer",
       "9000000000"
@@ -54,8 +55,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.429334,
+   "ms": 0.465125,
    "result": {
     "columns": [
      "sku",

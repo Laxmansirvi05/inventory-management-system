@@ -464,8 +464,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 4.583917,
+   "ms": 4.390959,
    "result": {
     "columns": [
      "table_name",
@@ -522,8 +523,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 1.5025,
+   "ms": 1.550334,
    "result": {
     "columns": [
      "table_name",

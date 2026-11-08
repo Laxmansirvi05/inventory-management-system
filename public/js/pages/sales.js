@@ -8,7 +8,7 @@ IMS.boot(async (content, user) => {
   const saveBtn = IMS.ui.btn('Save sale', { variant: 'primary', onClick: save });
   const force = h('input', { type: 'checkbox', on: { change: () => form.setAllowOversell(force.checked) } });
   const names = () => new Map(customers.map((c) => [c.customer_id, c.customer_name]));
-  const statusKind = { done: 'ok', failed: 'bad', pending: 'warn' };
+  const statusKind = { done: 'ok', failed: 'bad', pending: 'warn', undone: 'warn' };
 
   const queue = new IMS.ui.DataTable({ pageSize: 20, empty: 'No orders yet', columns: [
     { label: 'Order', render: (o) => '#' + o.order_id },

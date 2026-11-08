@@ -6,9 +6,11 @@ window.IMS = window.IMS || {};
 IMS.api = (function () {
   const MEMORY = [/^GET \/api\/products(\?|$)/, /^GET \/api\/alerts\//, /^GET \/api\/sales\/queue$/, /^GET \/api\/products\/(sku-check|\d+\?)/];   // answered from C++ data structures, no SQL
 
-  (function readMockFlag() {   // ?mock=1 switches on, ?mock=0 off; stored per tab
+  (function readMockFlag() {   // ?mock=1 switches on, ?mock=0 off; stored per tab; only honoured on localhost or file://
+    const local = ['localhost', '127.0.0.1', '[::1]', ''].includes(location.hostname) || location.protocol === 'file:';
     const q = new URLSearchParams(location.search).get('mock');
     try {
+      if (!local) { sessionStorage.removeItem('ims_mock'); return; }       // a link must not be able to show fake data on the live site
       if (q === '1') sessionStorage.setItem('ims_mock', '1');
       else if (q === '0') sessionStorage.removeItem('ims_mock');
     } catch (e) { /* storage blocked: mock flag then only lasts for this page */ }

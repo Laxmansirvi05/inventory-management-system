@@ -3,6 +3,18 @@ The deadline is not fixed yet, so the plan is expressed in **working days (D1–
 
 **If time runs short, drop in this order:** expiry/invoice → undo (stack) → photo (BLOB) → simplify reports. Never drop: products CRUD, search, sort, purchases/sales with triggers, FIFO queue, low-stock priority queue, login, the live SQL panel and the Query Explorer.
 
+## Status as built (08 Nov 2026)
+| Phase | State | Notes |
+|---|---|---|
+| 0 Setup, 1 Database | done | 10 tables, 7 triggers, 3 views, seed (60 products); MySQL C API instead of Connector/C++ |
+| 2–3 Core structures and stock logic | done | `core_tests` 60/60 |
+| 4 Database layer, 5 REST server | done | `db_tests` 46/46, `api_smoke` 138/138 |
+| 6 Frontend | done | 11 pages, Live SQL panel, mock mode (localhost only) |
+| 7 DBMS demonstration | done differently | the Lab pages were replaced by the Live SQL panel plus `sql/syllabus_demo.sql` |
+| 8 Deployment | done | Docker image, Render service in Singapore, Aiven MySQL; see `10-Deployment.md` |
+| 9 Testing and hardening | done | see `11-Audit-Report.md` |
+| 10 Documentation and viva | done | `13-Viva-Guide.md`; the DBMS and ADS reports are separate documents |
+
 ## Phase 0 · Setup (D1)
 **Tasks:** create GitHub repo `inventory`; add folders from TRD §3; install MySQL 8, C++17 compiler, CMake (the MySQL C client library `libmysqlclient` comes with MySQL); download cpp-httplib and nlohmann/json into `third_party/`; follow one code style (4 spaces, `camelCase`, one class per file).
 **Done when:** a "hello" C++ program builds with CMake and connects to local MySQL.

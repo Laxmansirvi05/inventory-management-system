@@ -1,6 +1,7 @@
 // server.cpp : cpp-httplib glue: session check, role check, one-request-at-a-time lock,
 // JSON envelope {ok, data, error, sql_log}, static files from public/.
 #include "server.h"
+#include <cctype>
 #include <cstdio>
 #include <ctime>
 #include <httplib.h>
@@ -45,6 +46,7 @@ static Reply dbErrorReply(unsigned no, const std::string& msg) {
         case 1406: return errReply(400, "TOO_LONG", msg, no);
         case 0:
             if (msg.find("not found") != std::string::npos) return errReply(404, "NOT_FOUND", msg);
+            if (msg.compare(0, 11, "Cannot undo") == 0) return errReply(409, "CANNOT_UNDO", msg);
             return errReply(400, "BAD_REQUEST", msg);
         default:   return errReply(400, "DB_ERROR", msg, no);
     }
@@ -149,10 +151,29 @@ void writeJson(httplib::Response& res, const Reply& r, const SqlLog& log) {
     res.set_content(out.dump(), "application/json");
 }
 
+// True when an Origin header ("https://host[:port]") names the same host as the Host header.
+bool sameOrigin(const std::string& origin, const std::string& host) {
+    size_t at = origin.find("://");
+    std::string o = at == std::string::npos ? origin : origin.substr(at + 3), h = host;
+    for (char& ch : o) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    for (char& ch : h) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    return !h.empty() && o == h;
+}
+
 void handle(App& app, const RouteDef& route, const httplib::Request& req, httplib::Response& res) {
     res.set_header("Cache-Control", "no-store");
     Ctx ctx(app);
     SqlLog empty;
+
+    // 0. Cross-site protection on top of the SameSite cookie: a browser tells us which site started a request that
+    // changes data. If that site is not ours, refuse it. (Tools like curl send no Origin header and are not affected.)
+    if (req.method != "GET" && req.method != "HEAD") {
+        std::string origin = req.get_header_value("Origin");
+        if (!origin.empty() && !sameOrigin(origin, req.get_header_value("Host"))) {
+            writeJson(res, errReply(403, "CROSS_SITE", "Requests from another site are refused"), empty);
+            return;
+        }
+    }
 
     // 1. who is calling, and are they allowed?
     ctx.token = cookieValue(req, kCookieName);
@@ -188,7 +209,7 @@ void handle(App& app, const RouteDef& route, const httplib::Request& req, httpli
     // 3. run it (one request at a time) and answer
     Reply reply;
     {
-        std::lock_guard<std::mutex> lock(app.mu);
+        std::lock_guard<FairMutex> lock(app.mu);
         try {
             reply = route.handler(ctx);
         } catch (const DbError& e) {

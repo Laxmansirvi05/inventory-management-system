@@ -4,15 +4,15 @@
    "product_name": "Notebook 100 Pages",
    "quantity_change": -2,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:44",
+   "txn_date": "2026-11-08 08:19:28",
    "txn_id": 149,
    "txn_type": "SALE"
   },
   {
    "product_name": "Highlighter Set",
    "quantity_change": -40,
-   "remarks": "Undo of last PURCHASE",
-   "txn_date": "2026-11-07 15:13:44",
+   "remarks": "Purchase line removed",
+   "txn_date": "2026-11-08 08:19:28",
    "txn_id": 148,
    "txn_type": "UNDO"
   },
@@ -20,7 +20,7 @@
    "product_name": "Highlighter Set",
    "quantity_change": 40,
    "remarks": "Stock received",
-   "txn_date": "2026-11-07 15:13:44",
+   "txn_date": "2026-11-08 08:19:28",
    "txn_id": 147,
    "txn_type": "PURCHASE"
   },
@@ -28,7 +28,7 @@
    "product_name": "Hand Wash 250ml",
    "quantity_change": -166,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 146,
    "txn_type": "SALE"
   },
@@ -36,7 +36,7 @@
    "product_name": "LED Bulb 9W",
    "quantity_change": -6,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 145,
    "txn_type": "SALE"
   },
@@ -44,7 +44,7 @@
    "product_name": "USB Flash Drive 32GB",
    "quantity_change": -4,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 144,
    "txn_type": "SALE"
   },
@@ -52,7 +52,7 @@
    "product_name": "Mineral Water 1L",
    "quantity_change": -444,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 143,
    "txn_type": "SALE"
   },
@@ -60,7 +60,7 @@
    "product_name": "Highlighter Set",
    "quantity_change": -4,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 142,
    "txn_type": "SALE"
   },
@@ -68,7 +68,7 @@
    "product_name": "Matchbox Pack",
    "quantity_change": -4,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 141,
    "txn_type": "SALE"
   },
@@ -76,7 +76,7 @@
    "product_name": "Deodorant 150ml",
    "quantity_change": -7,
    "remarks": "Stock sold",
-   "txn_date": "2026-11-07 15:13:42",
+   "txn_date": "2026-11-08 08:19:26",
    "txn_id": 140,
    "txn_type": "SALE"
   }
@@ -87,8 +87,9 @@
    "after": null,
    "before": null,
    "error": null,
+   "helper": false,
    "kind": "DQL",
-   "ms": 0.417333,
+   "ms": 0.453959,
    "result": {
     "columns": [
      "txn_id",
@@ -101,7 +102,7 @@
     "rows": [
      [
       "149",
-      "2026-11-07 15:13:44",
+      "2026-11-08 08:19:28",
       "Notebook 100 Pages",
       "SALE",
       "-2",
@@ -109,15 +110,15 @@
      ],
      [
       "148",
-      "2026-11-07 15:13:44",
+      "2026-11-08 08:19:28",
       "Highlighter Set",
       "UNDO",
       "-40",
-      "Undo of last PURCHASE"
+      "Purchase line removed"
      ],
      [
       "147",
-      "2026-11-07 15:13:44",
+      "2026-11-08 08:19:28",
       "Highlighter Set",
       "PURCHASE",
       "40",
@@ -125,7 +126,7 @@
      ],
      [
       "146",
-      "2026-11-07 15:13:42",
+      "2026-11-08 08:19:26",
       "Hand Wash 250ml",
       "SALE",
       "-166",
@@ -133,7 +134,7 @@
      ],
      [
       "145",
-      "2026-11-07 15:13:42",
+      "2026-11-08 08:19:26",
       "LED Bulb 9W",
       "SALE",
       "-6",

@@ -13,7 +13,16 @@ Reply dashboard(Ctx& c) {
     QueryResult m = c.app.db.execute(
         "SELECT COUNT(*) AS orders, COALESCE(SUM(total_amount), 0) AS revenue FROM Sales WHERE sale_date >= ?",
         {P(firstOfMonth())}, &c.log);
+    // Is the in-memory copy still what the database holds? (it differs after edits made outside this app)
+    QueryResult dbTotals = c.app.db.execute("SELECT COUNT(*) AS products, COALESCE(SUM(stock_quantity), 0) AS units FROM Products", {}, &c.log);
+    long long memUnits = 0;
+    for (const Product& p : c.app.inv.all()) memUnits += p.qty;
+    const long long dbProducts = std::stoll(*dbTotals.rows[0][0]), dbUnits = std::stoll(*dbTotals.rows[0][1]);
+    const bool inSync = dbProducts == static_cast<long long>(c.app.inv.size()) && dbUnits == memUnits;
     return okReply({{"products", c.app.inv.size()},
+                    {"in_sync", inSync},
+                    {"units", memUnits},
+                    {"database", {{"products", dbProducts}, {"units", dbUnits}}},
                     {"stock_value", std::round(value * 100) / 100},
                     {"low_stock", c.app.inv.lowStockAlerts().size()},
                     {"sales_this_month", rowsToJson(m)[0]},
@@ -25,6 +34,15 @@ Reply recentTransactions(Ctx& c) {
         "SELECT t.txn_id, t.txn_date, p.product_name, t.txn_type, t.quantity_change, t.remarks "
         "FROM Stock_Transactions t JOIN Products p ON p.product_id = t.product_id "
         "ORDER BY t.txn_id DESC LIMIT 10", {}, &c.log)));
+}
+
+// POST /api/system/reload : read the products from MySQL again (after the database was changed outside the app).
+// The undo history is cleared, because it describes changes the reload may have replaced.
+Reply reloadFromDatabase(Ctx& c) {
+    c.app.inv.replaceAll(loadProducts(c.app.db, &c.log));
+    c.app.inv.clearUndo();
+    c.app.refreshNames();
+    return okReply({{"products", c.app.inv.size()}});
 }
 
 // ---------- reports (fixed list: names choose the SQL, nothing from the client is run as SQL) ----------
@@ -177,6 +195,7 @@ Reply model(Ctx& c) {
 
 void registerReportRoutes(App& app) {
     app.add("GET", "/api/dashboard", Access::Any, dashboard);
+    app.add("POST", "/api/system/reload", Access::Admin, reloadFromDatabase);
     app.add("GET", "/api/transactions/recent", Access::Any, recentTransactions);
     app.add("GET", "/api/reports", Access::Any, listReports);
     app.add("GET", R"(/api/reports/([a-z-]+))", Access::Any, runReport);

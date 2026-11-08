@@ -85,8 +85,9 @@
      "after": null,
      "before": null,
      "error": null,
+     "helper": false,
      "kind": "DQL",
-     "ms": 0.610958,
+     "ms": 0.645458,
      "result": {
       "columns": [
        "category_name",
@@ -203,8 +204,9 @@
      "after": null,
      "before": null,
      "error": null,
+     "helper": false,
      "kind": "DQL",
-     "ms": 0.831875,
+     "ms": 0.712417,
      "result": {
       "columns": [
        "product_name",
@@ -365,8 +367,9 @@
      "after": null,
      "before": null,
      "error": null,
+     "helper": false,
      "kind": "DQL",
-     "ms": 0.501791,
+     "ms": 0.562083,
      "result": {
       "columns": [
        "customer_name",
@@ -429,9 +432,9 @@
       "total_bought": 144871.0
      },
      {
-      "purchases": 5,
+      "purchases": 4,
       "supplier_name": "Value Mart Agencies",
-      "total_bought": 134224.0
+      "total_bought": 133424.0
      },
      {
       "purchases": 1,
@@ -452,8 +455,9 @@
      "after": null,
      "before": null,
      "error": null,
+     "helper": false,
      "kind": "DQL",
-     "ms": 0.407917,
+     "ms": 0.430959,
      "result": {
       "columns": [
        "supplier_name",
@@ -473,8 +477,8 @@
        ],
        [
         "Value Mart Agencies",
-        "5",
-        "134224.00"
+        "4",
+        "133424.00"
        ],
        [
         "Krishna Supplies",
@@ -624,8 +628,9 @@
      "after": null,
      "before": null,
      "error": null,
+     "helper": false,
      "kind": "DQL",
-     "ms": 0.535917,
+     "ms": 0.537542,
      "result": {
       "columns": [
        "sku",
@@ -744,8 +749,9 @@
      "after": null,
      "before": null,
      "error": null,
+     "helper": false,
      "kind": "DQL",
-     "ms": 1.016125,
+     "ms": 1.224792,
      "result": {
       "columns": [
        "product_id",
