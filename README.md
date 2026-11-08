@@ -3,11 +3,11 @@ C++ backend · HTML/CSS/JS frontend · MySQL database (local or Aiven) · deploy
 
 > **Status:** database scripts, C++ core, database layer, REST API and the web frontend are built and tested (phases 0-6). Deployment files are ready and tested in Docker; the Aiven and Render steps need your accounts (see the deployment guide). See `docs/`.
 
-## Features (planned)
-Login (Admin/Employee) · product CRUD, search, sort · purchases and sales with stock triggers · FIFO order queue · low-stock priority alerts · undo · reports · **DBMS Lab** (ER model, query explorer, live SQL panel, trigger/transaction/constraint/DCL/index/BLOB demos).
+## Features
+Login (Admin/Employee) · product CRUD, search, sort, photos · purchases and sales with stock triggers · FIFO order queue · low-stock priority alerts · undo · reports · printable bills · user management · **Live SQL panel** (the SQL, results, trigger notes and before/after rows behind every action) · Database Model page · runnable syllabus demo (`sql/syllabus_demo.sql`).
 
 ## Documents
-1. [PRD](docs/01-PRD.md) 2. [TRD](docs/02-TRD.md) 3. [API spec](docs/03-API-Spec.md) 4. [Database design](docs/04-Database-Design.md) 5. [Database architecture & workflow](docs/05-Database-Architecture-and-Workflow.md) 6. [Test plan](docs/06-Test-Plan.md) 7. [Syllabus mapping](docs/07-Syllabus-Mapping.md) 8. [Implementation plan](docs/08-Implementation-Plan.md) 9. [Frontend plan](docs/09-Frontend-Plan.md) 10. [Deployment guide](docs/10-Deployment.md)
+1. [PRD](docs/01-PRD.md) 2. [TRD](docs/02-TRD.md) 3. [API spec](docs/03-API-Spec.md) 4. [Database design](docs/04-Database-Design.md) 5. [Database architecture & workflow](docs/05-Database-Architecture-and-Workflow.md) 6. [Test plan](docs/06-Test-Plan.md) 7. [Syllabus mapping](docs/07-Syllabus-Mapping.md) 8. [Implementation plan](docs/08-Implementation-Plan.md) 9. [Frontend plan](docs/09-Frontend-Plan.md) 10. [Deployment guide](docs/10-Deployment.md) 11. [Audit report](docs/11-Audit-Report.md) 12. [Syllabus demo output](docs/12-Syllabus-Demo-Output.md)
 
 ## Run locally
 1. Install MySQL 8 (includes the `libmysqlclient` C library), a C++17 compiler and CMake.

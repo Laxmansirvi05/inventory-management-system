@@ -80,6 +80,14 @@ IMS.boot(async (content, user) => {
       fld('photo', 'Photo (optional, image up to 1 MB)', photo, edit && p.has_photo ? 'A photo is stored; choosing a file replaces it' : null, 'wide')),
     buttons: [{ label: 'Cancel', close: true, onClick: () => {} }, { label: edit ? 'Save changes' : 'Add product', variant: 'primary', onClick: save }] });
 
+    // hash-set check while typing: tells at once that a SKU is taken (the server answers from memory, no SQL)
+    sku.addEventListener('blur', async () => {
+      const v = sku.value.trim();
+      if (!v || (edit && v === p.sku)) return;
+      const r = await IMS.api.get('/api/products/sku-check?sku=' + encodeURIComponent(v));
+      errs.sku.textContent = r.ok && r.data.exists ? 'This SKU is already in use (checked with a hash set)' : '';
+    });
+
     // check the inputs, send them, then upload the photo
     async function save() {
       Object.values(errs).forEach((e) => { e.textContent = ''; });

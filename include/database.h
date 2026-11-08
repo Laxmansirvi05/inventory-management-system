@@ -48,6 +48,9 @@ struct QueryResult {
     unsigned long long insertId = 0;
 };
 
+// True for the MySQL errors that mean "the connection is gone" (see database.cpp).
+bool isConnectionLost(unsigned errNo);
+
 class Database {
 public:
     Database() = default;
@@ -67,7 +70,12 @@ public:
     void rollback(SqlLog* log);
 
 private:
-    void simple(const char* sql, SqlLog* log);
+    void simple(const char* sql, SqlLog* log);                  // simpleOnce + repair of a dropped connection
+    void simpleOnce(const char* sql, SqlLog* log);
+    QueryResult executeOnce(const std::string& sql, const Params& params, SqlLog* log);
+    bool reconnect();                                           // open a fresh connection with the saved settings
+    DbConfig cfg_;
+    bool inTx_ = false;                                         // between begin() and commit()/rollback()
     struct MysqlHandle;                 // keeps <mysql.h> out of this header
     MysqlHandle* conn_ = nullptr;
 };

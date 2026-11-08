@@ -1,7 +1,9 @@
 // db_tests.cpp : Phase 4 console test of the database layer against a real MySQL database.
 // It WRITES data, so it refuses to run unless DB_NAME ends with "_test".
 //   scripts/load_db.sh ims_test && DB_NAME=ims_test build/db_tests
+#include <chrono>
 #include <iostream>
+#include <thread>
 #include "database.h"
 #include "repository.h"
 
@@ -118,6 +120,36 @@ int main() {
     SqlLog delOk;
     WriteResult del = deleteProductRow(db, inv, static_cast<int>(f.id), delOk);
     CHECK(f.ok && del.ok && inv.findById(static_cast<int>(f.id)) == nullptr, "delete of a product with no history works");
+
+    std::cout << "[lost connection: the server closes an idle connection]\n";
+    {
+        Database d2;
+        std::string e2;
+        d2.connect(cfg, e2);
+        auto idleOut = [&]() {                              // make the server drop this connection after 1 s of silence
+            d2.execute("SET SESSION wait_timeout = 1", {}, nullptr);
+            std::this_thread::sleep_for(std::chrono::milliseconds(2500));
+        };
+        idleOut();
+        long long count = -1;
+        try { count = std::stoll(*d2.execute("SELECT COUNT(*) FROM Products", {}, nullptr).rows[0][0]); } catch (const DbError&) {}
+        CHECK(count > 0, "a statement after an idle disconnect reconnects by itself and succeeds");
+
+        d2.begin(nullptr);
+        idleOut();
+        unsigned code = 0;
+        try { d2.execute("SELECT 1", {}, nullptr); } catch (const DbError& e) { code = e.errNo; }
+        CHECK(isConnectionLost(code), "a connection lost INSIDE a transaction is reported, never silently retried");
+        try { d2.rollback(nullptr); } catch (const DbError&) {}
+        bool again = false;
+        try { again = d2.execute("SELECT 1", {}, nullptr).rows.size() == 1; } catch (const DbError&) {}
+        CHECK(again, "the next request after that works again (connection repaired)");
+
+        SqlLog repaired;
+        idleOut();
+        recordSale(d2, inv, 1, {{7, 1}}, repaired);          // a whole sale right after a dropped connection
+        CHECK(!repaired.empty() && repaired.entries().back().sql == "COMMIT", "a sale started on a dropped connection still completes (begin is retried)");
+    }
 
     std::cout << "[log as JSON]\n";
     nlohmann::json j = saleLog.toJson();

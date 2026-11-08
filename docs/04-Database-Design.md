@@ -35,4 +35,4 @@ Primary key (clustered), UNIQUE sku, foreign-key indexes, `idx_products_name`, c
 **To verify on Aiven:** whether CREATE USER / GRANT work for the admin account.
 
 ## Scripts
-`sql/schema.sql`, `sql/triggers.sql`, `sql/seed.sql`, `sql/lab_queries.sql` (reuse the verified blocks from the DBMS report appendix).
+`sql/schema.sql`, `sql/triggers.sql`, `sql/views.sql`, `sql/seed.sql`, `sql/roles.sql`, and `sql/syllabus_demo.sql` (one runnable example per syllabus topic; captured output in `12-Syllabus-Demo-Output.md`).

@@ -54,7 +54,37 @@ SqlEntry baseEntry(const std::string& shownSql) {
     return e;
 }
 
+// Open and configure one connection (TLS with certificate check when a CA file is given).
+MYSQL* openConnection(const DbConfig& cfg, std::string& error) {
+    MYSQL* m = mysql_init(nullptr);
+    if (!m) { error = "mysql_init failed"; return nullptr; }
+    mysql_options(m, MYSQL_SET_CHARSET_NAME, "utf8mb4");
+    unsigned timeout = 10;
+    mysql_options(m, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
+    if (!cfg.sslCa.empty()) {                       // Aiven: encrypted connection, certificate checked
+        mysql_options(m, MYSQL_OPT_SSL_CA, cfg.sslCa.c_str());
+#if defined(MARIADB_VERSION_ID)
+        MyBool verify = 1;
+        mysql_options(m, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &verify);
+#else
+        unsigned mode = SSL_MODE_VERIFY_CA;
+        mysql_options(m, MYSQL_OPT_SSL_MODE, &mode);
+#endif
+    }
+    if (!mysql_real_connect(m, cfg.host.c_str(), cfg.user.c_str(), cfg.password.c_str(),
+                            cfg.name.c_str(), cfg.port, nullptr, CLIENT_FOUND_ROWS)) {
+        error = mysql_error(m);
+        mysql_close(m);
+        return nullptr;
+    }
+    return m;
+}
+
 }  // namespace
+
+// 2006 = server has gone away, 2013 = lost connection during query, 2055 = lost connection (extended),
+// 4031 = the server closed the connection because of inactivity (wait_timeout; MySQL 8.0.24 and newer, so also Aiven)
+bool isConnectionLost(unsigned errNo) { return errNo == 2006 || errNo == 2013 || errNo == 2055 || errNo == 4031; }
 
 // ---- parameters ----
 Param P(int v) { return Param{false, true, std::to_string(v)}; }
@@ -82,32 +112,38 @@ Database::~Database() {
 }
 
 bool Database::connect(const DbConfig& cfg, std::string& error) {
-    MYSQL* m = mysql_init(nullptr);
-    if (!m) { error = "mysql_init failed"; return false; }
-    mysql_options(m, MYSQL_SET_CHARSET_NAME, "utf8mb4");
-    unsigned timeout = 10;
-    mysql_options(m, MYSQL_OPT_CONNECT_TIMEOUT, &timeout);
-    if (!cfg.sslCa.empty()) {                       // Aiven: encrypted connection, certificate checked
-        mysql_options(m, MYSQL_OPT_SSL_CA, cfg.sslCa.c_str());
-#if defined(MARIADB_VERSION_ID)
-        MyBool verify = 1;
-        mysql_options(m, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &verify);
-#else
-        unsigned mode = SSL_MODE_VERIFY_CA;
-        mysql_options(m, MYSQL_OPT_SSL_MODE, &mode);
-#endif
-    }
-    if (!mysql_real_connect(m, cfg.host.c_str(), cfg.user.c_str(), cfg.password.c_str(),
-                            cfg.name.c_str(), cfg.port, nullptr, CLIENT_FOUND_ROWS)) {
-        error = mysql_error(m);
-        mysql_close(m);
-        return false;
-    }
+    MYSQL* m = openConnection(cfg, error);
+    if (!m) return false;
+    cfg_ = cfg;
     conn_ = new MysqlHandle{m};
     return true;
 }
 
+// The server may close an idle connection, restart for maintenance or the network may blink.
+// Open a new connection with the same settings; a failure leaves the old handle in place.
+bool Database::reconnect() {
+    std::string err;
+    MYSQL* m = openConnection(cfg_, err);
+    if (!m) return false;
+    if (conn_) { mysql_close(conn_->m); conn_->m = m; }
+    else conn_ = new MysqlHandle{m};
+    inTx_ = false;
+    return true;
+}
+
+// Run one statement. If the connection was lost and we are NOT inside a transaction, reconnect and try once more:
+// nothing was half done. Inside a transaction the error is passed on, because the server already rolled it back
+// and repeating one statement alone would run it outside the transaction.
 QueryResult Database::execute(const std::string& sql, const Params& params, SqlLog* log) {
+    try {
+        return executeOnce(sql, params, log);
+    } catch (const DbError& e) {
+        if (!isConnectionLost(e.errNo) || inTx_ || !reconnect()) throw;
+        return executeOnce(sql, params, log);
+    }
+}
+
+QueryResult Database::executeOnce(const std::string& sql, const Params& params, SqlLog* log) {
     if (!conn_) throw DbError(0, "Not connected to the database");
     auto t0 = std::chrono::steady_clock::now();
     SqlEntry entry = baseEntry(renderSql(sql, params));
@@ -212,7 +248,7 @@ QueryResult Database::execute(const std::string& sql, const Params& params, SqlL
     return res;
 }
 
-void Database::simple(const char* sql, SqlLog* log) {
+void Database::simpleOnce(const char* sql, SqlLog* log) {
     if (!conn_) throw DbError(0, "Not connected to the database");
     auto t0 = std::chrono::steady_clock::now();
     SqlEntry entry = baseEntry(sql);
@@ -223,6 +259,24 @@ void Database::simple(const char* sql, SqlLog* log) {
     if (bad) throw DbError(entry.errNo, entry.error);
 }
 
-void Database::begin(SqlLog* log) { simple("START TRANSACTION", log); }
-void Database::commit(SqlLog* log) { simple("COMMIT", log); }
-void Database::rollback(SqlLog* log) { simple("ROLLBACK", log); }
+// Same repair rule as execute(): only outside a transaction.
+void Database::simple(const char* sql, SqlLog* log) {
+    try {
+        simpleOnce(sql, log);
+    } catch (const DbError& e) {
+        if (!isConnectionLost(e.errNo) || inTx_ || !reconnect()) throw;
+        simpleOnce(sql, log);
+    }
+}
+
+void Database::begin(SqlLog* log) { simple("START TRANSACTION", log); inTx_ = true; }
+
+void Database::commit(SqlLog* log) {
+    try { simple("COMMIT", log); } catch (...) { inTx_ = false; throw; }
+    inTx_ = false;
+}
+
+void Database::rollback(SqlLog* log) {
+    try { simple("ROLLBACK", log); } catch (...) { inTx_ = false; throw; }
+    inTx_ = false;
+}

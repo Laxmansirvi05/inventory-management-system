@@ -25,7 +25,24 @@ public:
     std::string create(int userId, const std::string& username, const std::string& role);
     bool find(const std::string& token, Session& out);                   // false if unknown or expired
     void destroy(const std::string& token);
+    // End every session of one user (account deleted, role or password changed); keepToken stays logged in.
+    void destroyUser(int userId, const std::string& keepToken = "");
 private:
     std::mutex mu_;
     std::map<std::string, Session> sessions_;
+};
+
+// Slows down password guessing. Too many failures for one key (a username or a client address) block that key
+// for a minute. Keys are added by the caller, e.g. "u:admin" and "i:203.0.113.5".
+class LoginThrottle {
+public:
+    static constexpr int kWindowSeconds = 15 * 60;      // failures older than this are forgotten
+    static constexpr int kBlockSeconds = 60;
+    bool blocked(const std::string& key, int& secondsLeft);
+    void failure(const std::string& key, int maxFailures);
+    void success(const std::string& key);                // a correct password clears the key
+private:
+    struct Entry { int fails = 0; std::time_t first = 0; std::time_t blockedUntil = 0; };
+    std::mutex mu_;
+    std::map<std::string, Entry> entries_;
 };

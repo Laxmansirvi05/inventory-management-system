@@ -4,7 +4,7 @@
 window.IMS = window.IMS || {};
 
 IMS.api = (function () {
-  const MEMORY = [/^GET \/api\/products(\?|$)/, /^GET \/api\/alerts\//];   // answered from C++ data structures, no SQL
+  const MEMORY = [/^GET \/api\/products(\?|$)/, /^GET \/api\/alerts\//, /^GET \/api\/sales\/queue$/, /^GET \/api\/products\/(sku-check|\d+\?)/];   // answered from C++ data structures, no SQL
 
   (function readMockFlag() {   // ?mock=1 switches on, ?mock=0 off; stored per tab
     const q = new URLSearchParams(location.search).get('mock');

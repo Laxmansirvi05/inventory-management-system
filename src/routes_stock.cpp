@@ -4,6 +4,7 @@
 namespace {
 
 const size_t kMaxLines = 100;
+const int kMaxQty = 1000000;           // keeps the sum of all lines far from integer overflow
 const size_t kHistoryKept = 20;
 
 // Read "items": [{product_id, quantity, ...}]. Returns an error message or "".
@@ -34,6 +35,7 @@ Reply createPurchase(Ctx& c) {
         if (!jsonInt(it, "product_id", l.productId) || !jsonInt(it, "quantity", l.qty) || !jsonNumber(it, "unit_cost", l.unitCost)) {
             return errReply(400, "BAD_REQUEST", "each item needs product_id, quantity and unit_cost");
         }
+        if (l.qty > kMaxQty) return errReply(400, "BAD_REQUEST", "quantity must be at most 1,000,000");
         lines.push_back(l);
     }
     WriteResult w = recordPurchase(c.app.db, c.app.inv, supplierId, lines, c.log);
@@ -73,6 +75,7 @@ Reply createSale(Ctx& c) {
         if (!jsonInt(it, "product_id", l.productId) || !jsonInt(it, "quantity", l.qty)) {
             return errReply(400, "BAD_REQUEST", "each item needs product_id and quantity");
         }
+        if (l.qty > kMaxQty) return errReply(400, "BAD_REQUEST", "quantity must be at most 1,000,000");
         order.lines.push_back(l);
     }
 

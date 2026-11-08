@@ -11,7 +11,7 @@ A web application that manages products, stock, purchases, sales, suppliers and 
 ## 3. Users
 | Role | Can do |
 |---|---|
-| Admin | Everything: manage products, suppliers, customers, users, view all reports, open the DBMS Lab |
+| Admin | Everything: manage products, suppliers, customers, users, view all reports, open the Database Model page |
 | Employee | Search products, record sales and purchases, view stock and low-stock alerts (no deletes, no user management) |
 
 ## 4. Features
@@ -28,9 +28,9 @@ A web application that manages products, stock, purchases, sales, suppliers and 
 | F8 | Low-stock alerts, most urgent first (priority queue) | M |
 | F9 | Reports: stock value, top sellers, sales/purchases per customer/supplier, never-sold products | M |
 | F10 | Undo last stock transaction (stack) | S |
-| F11 | **DBMS Lab:** Database Model page, Query Explorer, live SQL panel, trigger/transaction/constraint/DCL/index/BLOB demos | M |
+| F11 | **DBMS visibility:** Database Model page, Live SQL panel on every action (trigger, transaction and constraint behaviour shown through normal use), and a runnable syllabus script `sql/syllabus_demo.sql` (replaces the originally planned Lab pages, see `09-Frontend-Plan.md` section 1) | M |
 | F12 | Product photo upload and display (BLOB) | S |
-| F13 | Expiry-date tracking, invoice view | O |
+| F13 | Expiry-date tracking (stored and shown, no expiry alerts), invoice view (printable bill page) | O |
 
 ## 5. Non-functional requirements
 - Simple, professional UI in HTML, CSS, JavaScript; no front-end framework required.

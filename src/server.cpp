@@ -151,7 +151,6 @@ void writeJson(httplib::Response& res, const Reply& r, const SqlLog& log) {
 
 void handle(App& app, const RouteDef& route, const httplib::Request& req, httplib::Response& res) {
     res.set_header("Cache-Control", "no-store");
-    res.set_header("X-Content-Type-Options", "nosniff");
     Ctx ctx(app);
     SqlLog empty;
 
@@ -173,6 +172,10 @@ void handle(App& app, const RouteDef& route, const httplib::Request& req, httpli
     for (const auto& kv : req.params) ctx.query[kv.first] = kv.second;
     for (size_t i = 1; i < req.matches.size(); ++i) ctx.params.push_back(req.matches[i]);
     ctx.contentType = req.get_header_value("Content-Type");
+    // Behind Render's proxy the last X-Forwarded-For entry is the address the proxy saw (earlier ones come from the client).
+    std::string forwarded = req.get_header_value("X-Forwarded-For");
+    size_t comma = forwarded.rfind(',');
+    ctx.remoteAddr = forwarded.empty() ? req.remote_addr : trimmed(comma == std::string::npos ? forwarded : forwarded.substr(comma + 1));
     ctx.rawBody = req.body;
     if (ctx.contentType.compare(0, 16, "application/json") == 0 && !req.body.empty()) {
         ctx.body = json::parse(req.body, nullptr, false);
@@ -210,6 +213,18 @@ int runServer(App& app, int port) {
     httplib::Server svr;
     svr.set_payload_max_length(2 * 1024 * 1024);           // photos are limited to 1 MB; leave headroom
 
+    // Protective headers on EVERY response, pages and API alike. All scripts and styles come from this server;
+    // style-src allows inline style attributes because the pages set a few.
+    httplib::Headers secure = {
+        {"X-Content-Type-Options", "nosniff"},
+        {"X-Frame-Options", "DENY"},
+        {"Referrer-Policy", "same-origin"},
+        {"Permissions-Policy", "camera=(), microphone=(), geolocation=()"},
+        {"Content-Security-Policy", "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; "
+                                    "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"}};
+    if (app.secureCookie) secure.emplace("Strict-Transport-Security", "max-age=31536000");   // HTTPS deployments only
+    svr.set_default_headers(secure);
+
     for (const RouteDef& route : app.routes) {
         auto cb = [&app, &route](const httplib::Request& req, httplib::Response& res) { handle(app, route, req, res); };
         if (route.method == "GET") svr.Get(route.pattern, cb);
@@ -218,13 +233,21 @@ int runServer(App& app, int port) {
         else if (route.method == "DELETE") svr.Delete(route.pattern, cb);
     }
 
-    // Unknown /api paths and wrong methods answer in the same JSON shape.
+    // Errors raised by httplib itself (unknown path, wrong method, body too large ...) get the same JSON shape,
+    // and keep their real status.
     svr.set_error_handler([](const httplib::Request& req, httplib::Response& res) {
         // httplib calls this for every 4xx/5xx, also for errors our routes already answered: leave those alone.
         if (req.path.compare(0, 5, "/api/") != 0 || !res.body.empty()) return;
         SqlLog empty;
-        int status = res.status == 405 ? 405 : 404;
-        writeJson(res, errReply(status, status == 405 ? "METHOD_NOT_ALLOWED" : "NOT_FOUND", "No such API endpoint"), empty);
+        std::string code = "BAD_REQUEST", msg = "The request could not be processed";
+        switch (res.status) {
+            case 404: code = "NOT_FOUND"; msg = "No such API endpoint"; break;
+            case 405: code = "METHOD_NOT_ALLOWED"; msg = "This endpoint does not accept that method"; break;
+            case 411: code = "LENGTH_REQUIRED"; msg = "Content-Length is required"; break;
+            case 413: code = "TOO_LARGE"; msg = "The request body is too large"; break;
+            default: if (res.status >= 500) { code = "INTERNAL"; msg = "Internal server error"; }
+        }
+        writeJson(res, errReply(res.status, code, msg), empty);
     });
 
     if (!svr.set_mount_point("/", app.publicDir)) {

@@ -56,10 +56,32 @@ Reply listProducts(Ctx& c) {
     return okReply(arr);
 }
 
+// GET /api/products/{id}?via=hash|binary : the same lookup with two different structures, for the ADS demo
 Reply getProduct(Ctx& c) {
-    const Product* p = c.app.inv.findById(c.paramInt(0));           // hash map
-    if (!p) return errReply(404, "NOT_FOUND", "Product not found");
-    return okReply(productJson(c.app, *p));
+    int id = c.paramInt(0);
+    std::string via = c.q("via", "hash");
+    if (via != "hash" && via != "binary") return errReply(400, "BAD_REQUEST", "via must be hash or binary");
+    json out;
+    if (via == "binary") {
+        std::vector<Product> byId = c.app.inv.inIdOrder();           // tree map walk: products in id order, O(n)
+        int at = binarySearchById(byId, id);                         // binary search on that order, O(log n)
+        if (at < 0) return errReply(404, "NOT_FOUND", "Product not found");
+        out = productJson(c.app, byId[static_cast<size_t>(at)]);
+        out["found_by"] = "binary search over the tree map's id order";
+    } else {
+        const Product* p = c.app.inv.findById(id);                   // hash map, O(1) average
+        if (!p) return errReply(404, "NOT_FOUND", "Product not found");
+        out = productJson(c.app, *p);
+        out["found_by"] = "hash map";
+    }
+    return okReply(out);
+}
+
+// GET /api/products/sku-check?sku=... : is this SKU taken? Answered by the in-memory hash set, no SQL.
+Reply skuCheck(Ctx& c) {
+    std::string sku = trimmed(c.q("sku"));
+    if (sku.empty()) return errReply(400, "BAD_REQUEST", "sku is required");
+    return okReply({{"sku", sku}, {"exists", c.app.inv.hasSku(sku)}, {"checked_with", "hash set"}});
 }
 
 // Read the JSON body of POST/PUT /api/products. Returns an error message, or "" when fine.
@@ -249,6 +271,7 @@ Reply deleteEntity(const Entity& e, Ctx& c) {
 
 void registerCatalogRoutes(App& app) {
     app.add("GET", "/api/products", Access::Any, listProducts);
+    app.add("GET", "/api/products/sku-check", Access::Any, skuCheck);
     app.add("GET", R"(/api/products/(\d+))", Access::Any, getProduct);
     app.add("POST", "/api/products", Access::Admin, createProduct);
     app.add("PUT", R"(/api/products/(\d+))", Access::Admin, updateProduct);

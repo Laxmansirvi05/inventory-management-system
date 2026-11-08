@@ -1,4 +1,5 @@
 // routes_auth.cpp : POST /api/auth/login, POST /api/auth/logout, GET /api/auth/me
+#include <cctype>
 #include "server.h"
 
 namespace {
@@ -16,11 +17,24 @@ Reply login(Ctx& c) {
         username.empty() || password.empty()) {
         return errReply(400, "BAD_REQUEST", "Username and password are required");
     }
+    // Too many wrong guesses for this user name or from this address: refuse before touching the database.
+    std::string lowered = username.substr(0, 64);
+    for (char& ch : lowered) ch = static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+    const std::string userKey = "u:" + lowered, ipKey = "i:" + c.remoteAddr;
+    int wait = 0;
+    if (c.app.throttle.blocked(userKey, wait) || c.app.throttle.blocked(ipKey, wait)) {
+        return errReply(429, "TOO_MANY_ATTEMPTS", "Too many failed sign-in attempts. Try again in " + std::to_string(wait) + " seconds.");
+    }
     // Not logged: the result row contains the password hash.
     QueryResult r = c.app.db.execute("SELECT user_id, password_hash, role FROM Users WHERE username = ?", {P(username)}, nullptr);
     bool found = !r.rows.empty();
     bool ok = verifyPassword(password, found ? *r.rows[0][1] : kDummyHash);   // same work for unknown users
-    if (!found || !ok) return errReply(401, "INVALID_CREDENTIALS", "Invalid username or password");
+    if (!found || !ok) {
+        c.app.throttle.failure(userKey, 5);          // 5 wrong passwords for one user name ...
+        c.app.throttle.failure(ipKey, 30);           // ... or 30 from one address block it for a minute
+        return errReply(401, "INVALID_CREDENTIALS", "Invalid username or password");
+    }
+    c.app.throttle.success(userKey);
 
     int userId = std::stoi(*r.rows[0][0]);
     std::string role = *r.rows[0][2];

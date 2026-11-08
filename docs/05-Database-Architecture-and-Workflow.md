@@ -3,7 +3,7 @@
 ## 1. Layers
 ```mermaid
 flowchart TB
-  UI[Browser UI + DBMS Lab pages] --> API[C++ REST API]
+  UI[Browser UI + Live SQL panel] --> API[C++ REST API]
   API --> CORE[Inventory core<br/>vector · unordered_map · queue · priority_queue · stack]
   API --> DBL[Database layer<br/>prepared statements · transactions · SQL logger]
   DBL --> |SSL| SQL[(MySQL 8 · InnoDB)]

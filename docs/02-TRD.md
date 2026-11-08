@@ -28,12 +28,16 @@ flowchart LR
 ## 3. Folder structure
 ```
 ims/
-  src/        main.cpp  server.cpp  inventory.cpp  sorting.cpp  database.cpp  auth.cpp  sqllog.cpp
-  include/    product.h inventory.h sorting.h database.h auth.h sqllog.h
-  public/     index.html  login.html  products.html  sales.html  reports.html  lab.html  css/  js/
-  sql/        schema.sql  triggers.sql  seed.sql  lab_queries.sql
+  src/        main.cpp server.cpp routes_*.cpp inventory.cpp sorting.cpp orders.cpp restock.cpp undo.cpp
+              database.cpp repository.cpp sqllog.cpp auth.cpp
+  include/    one header per source file (product.h, server.h, ...)
+  public/     login.html index.html products.html categories.html parties.html purchases.html sales.html
+              reports.html users.html model.html bill.html   css/ js/ js/pages/ img/ mock/
+  sql/        schema.sql triggers.sql views.sql seed.sql roles.sql syllabus_demo.sql
+  scripts/    load_db.sh load_aiven.sh load_roles.sh run_syllabus_demo.sh make_mock.py
+  tests/      core_tests.cpp db_tests.cpp api_smoke.py livesql_coverage.py
   docs/       (these documents)
-  Dockerfile  CMakeLists.txt  README.md
+  Dockerfile  render.yaml  CMakeLists.txt  README.md
 ```
 
 ## 4. Data structures (ADS)

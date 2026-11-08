@@ -73,6 +73,11 @@ st, d = emp.j("POST", "/api/auth/login", {"username": "employee", "password": "S
 check(st == 200 and d["data"]["role"] == "EMPLOYEE", "employee login ok")
 check(admin.j("GET", "/api/auth/me")[1]["data"]["username"] == "admin", "/auth/me returns the user")
 check(anon.j("POST", "/api/auth/login", {"username": "admin"})[0] == 400, "missing password -> 400")
+codes = [anon.j("POST", "/api/auth/login", {"username": "throttle.test", "password": "bad%d" % i})[0] for i in range(6)]
+check(codes[:5] == [401] * 5 and codes[5] == 429, "6th wrong password for one user name is blocked (429)")
+st, d = anon.j("POST", "/api/auth/login", {"username": "throttle.test", "password": "bad7"})
+check(st == 429 and d["error"]["code"] == "TOO_MANY_ATTEMPTS", "a blocked user name stays blocked and says why")
+check(Client().j("POST", "/api/auth/login", {"username": "employee", "password": "Staff@2026"})[0] == 200, "other users can still sign in meanwhile")
 st, d, _ = anon.call("POST", "/api/auth/login", raw=b"{not json", ctype="application/json")
 check(st == 400 and d["error"]["code"] == "INVALID_JSON", "broken JSON -> 400")
 
@@ -93,6 +98,14 @@ cat1 = admin.j("GET", "/api/products?category=1")[1]["data"]
 check(len(cat1) == 10 and all(p["category_id"] == 1 for p in cat1), "filter by category")
 check(admin.j("GET", "/api/products?search=%27%20OR%201%3D1%20--")[1]["data"] == [], "T19 injection text is just text")
 check(admin.j("GET", "/api/products/6")[1]["data"]["name"] == "Notebook 100 Pages", "get one product")
+h = admin.j("GET", "/api/products/8?via=hash")[1]["data"]
+b = admin.j("GET", "/api/products/8?via=binary")[1]["data"]
+check(h["name"] == b["name"] and h["found_by"] == "hash map" and b["found_by"].startswith("binary search"), "same product found by hash map and by binary search (tree map order)")
+check(all(admin.j("GET", "/api/products/%d?via=binary" % i)[1]["data"]["id"] == i for i in (1, 30, 60)), "binary search finds first, middle and last id")
+check(admin.j("GET", "/api/products/9999?via=binary")[0] == 404 and admin.j("GET", "/api/products/6?via=x")[0] == 400, "binary lookup: missing id 404, bad option 400")
+st, d = admin.j("GET", "/api/products/sku-check?sku=SKU0001")
+check(st == 200 and d["data"]["exists"] is True and d["data"]["checked_with"] == "hash set" and d["sql_log"] == [], "SKU check answers 'taken' from the hash set, without SQL")
+check(admin.j("GET", "/api/products/sku-check?sku=NO-SUCH-SKU")[1]["data"]["exists"] is False and admin.j("GET", "/api/products/sku-check")[0] == 400, "SKU check: free SKU false, missing parameter 400")
 check(admin.j("GET", "/api/products/9999")[0] == 404, "missing product -> 404")
 
 print("[T2 T3 T4 T5 product writes and roles]")
@@ -219,13 +232,30 @@ check(admin.j("POST", "/api/users", {"username": "temp.user", "password": "TempP
 check(admin.j("POST", "/api/users", {"username": "weak", "password": "short", "role": "ADMIN"})[0] == 400, "short password -> 400")
 newc = Client()
 check(newc.j("POST", "/api/auth/login", {"username": "temp.user", "password": "TempPass#1"})[0] == 200, "new user can log in")
+check(newc.j("GET", "/api/products")[0] == 200, "the new user's session works before the reset")
 check(admin.j("PUT", "/api/users/%d" % uid, {"password": "Changed#Pass9"})[0] == 200, "reset password")
+check(newc.j("GET", "/api/products")[0] == 401, "the user's open session ends when their password is reset")
 check(Client().j("POST", "/api/auth/login", {"username": "temp.user", "password": "TempPass#1"})[0] == 401, "old password no longer works")
 me = admin.j("GET", "/api/auth/me")[1]["data"]["user_id"]
 check(admin.j("DELETE", "/api/users/%d" % me)[0] == 400, "cannot delete own account")
 check(admin.j("PUT", "/api/users/%d" % me, {"role": "EMPLOYEE"})[0] == 400, "cannot demote self")
+c3 = Client()
+check(c3.j("POST", "/api/auth/login", {"username": "temp.user", "password": "Changed#Pass9"})[0] == 200, "user signs in with the new password")
+check(admin.j("PUT", "/api/users/%d" % uid, {"role": "ADMIN"})[0] == 200 and c3.j("GET", "/api/products")[0] == 401, "a role change ends the user's open sessions")
+check(c3.j("POST", "/api/auth/login", {"username": "temp.user", "password": "Changed#Pass9"})[0] == 200, "signing in again gives the new role")
 check(admin.j("DELETE", "/api/users/%d" % uid)[0] == 200, "delete user")
+check(c3.j("GET", "/api/users")[0] == 401, "a deleted user's open session stops working at once")
 check(len(admin.j("GET", "/api/users")[1]["data"]) == 2, "back to two users")
+
+print("[hardening]")
+hdr = urllib.request.urlopen(BASE + "/login.html").headers
+check("default-src 'self'" in hdr.get("Content-Security-Policy", ""), "pages carry a Content-Security-Policy")
+check(hdr.get("X-Frame-Options") == "DENY" and hdr.get("X-Content-Type-Options") == "nosniff" and hdr.get("Referrer-Policy"), "pages carry framing, sniffing and referrer headers")
+check(admin.call("GET", "/api/products")[0] == 200 and "Content-Security-Policy" in urllib.request.urlopen(BASE + "/img/er_diagram.png").headers, "images carry them too")
+st, d, _ = anon.call("POST", "/api/auth/login", raw=b"a" * 3000000, ctype="application/json")
+check(st == 413 and d["error"]["code"] == "TOO_LARGE", "an oversized body is answered 413 TOO_LARGE, not a false 404")
+st, d = admin.j("POST", "/api/sales", {"items": [{"product_id": 6, "quantity": 2000000}]})
+check(st == 400 and "1,000,000" in d["error"]["message"], "a quantity above 1,000,000 is refused before it reaches MySQL")
 
 print("[misc]")
 st, d = admin.j("GET", "/api/nope")

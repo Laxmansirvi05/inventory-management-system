@@ -40,6 +40,7 @@ struct Ctx {
     SqlLog log;                                 // statements run for this request
     json body;                                  // parsed JSON body (null if none)
     std::string rawBody, contentType;
+    std::string remoteAddr;                     // client address (last X-Forwarded-For entry behind Render's proxy)
     std::map<std::string, std::string> query;
     std::vector<std::string> params;            // regex groups from the URL
     explicit Ctx(App& a) : app(a) {}
@@ -65,6 +66,7 @@ struct App {
     Inventory inv;
     OrderQueue orders;
     SessionStore sessions;
+    LoginThrottle throttle;
     std::mutex mu;                              // one request at a time: single DB connection, shared memory
     std::map<int, std::string> categoryNames, supplierNames;
     std::deque<OrderRecord> orderHistory;       // newest last, capped

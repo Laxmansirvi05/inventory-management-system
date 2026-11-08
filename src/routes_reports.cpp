@@ -130,6 +130,7 @@ Reply updateUser(Ctx& c) {
     WriteResult w = runStatement(c.app.db, "UPDATE Users SET " + sets + " WHERE user_id = ?", params, c.log);
     if (!w.ok) return writeFailure(w);
     if (w.affected == 0) return errReply(404, "NOT_FOUND", "User not found");
+    c.app.sessions.destroyUser(id, id == c.user->userId ? c.token : "");   // role or password changed: sign them out
     return okReply({{"id", id}});
 }
 
@@ -139,6 +140,7 @@ Reply deleteUser(Ctx& c) {
     WriteResult w = runStatement(c.app.db, "DELETE FROM Users WHERE user_id = ?", {P(id)}, c.log);
     if (!w.ok) return writeFailure(w);
     if (w.affected == 0) return errReply(404, "NOT_FOUND", "User not found");
+    c.app.sessions.destroyUser(id);                                          // a deleted account must not keep working
     return okReply({{"deleted", id}});
 }
 

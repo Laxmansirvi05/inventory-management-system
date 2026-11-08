@@ -42,6 +42,12 @@ WriteResult failure(const DbError& e) {
 // Memory no longer matches the database (should never happen): reload everything from MySQL.
 void resync(Database& db, Inventory& inv) { inv.replaceAll(loadProducts(db, nullptr)); }
 
+// A connection lost around COMMIT leaves it unknown whether the change was stored: reload memory from MySQL.
+void resyncIfConnectionLost(Database& db, Inventory& inv, unsigned errNo) {
+    if (!isConnectionLost(errNo)) return;
+    try { resync(db, inv); } catch (const DbError&) { /* still down: the next request tries again */ }
+}
+
 }  // namespace
 
 std::vector<Product> loadProducts(Database& db, SqlLog* log) {
@@ -109,6 +115,7 @@ WriteResult recordSale(Database& db, Inventory& inv, int customerId, const std::
             log.last().before = stockSnapshot(lastPid, lastStock);
         }
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
 
@@ -149,6 +156,7 @@ WriteResult recordPurchase(Database& db, Inventory& inv, int supplierId, const s
         db.commit(&log);
     } catch (const DbError& e) {
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
     bool inSync = true;
@@ -175,6 +183,7 @@ WriteResult insertProduct(Database& db, Inventory& inv, const Product& p, SqlLog
         db.commit(&log);
     } catch (const DbError& e) {
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
     Product mem = p;
@@ -199,6 +208,7 @@ WriteResult updateProductRow(Database& db, Inventory& inv, const Product& p, Sql
         db.commit(&log);
     } catch (const DbError& e) {
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
     Product mem = p;
@@ -222,6 +232,7 @@ WriteResult deleteProductRow(Database& db, Inventory& inv, int productId, SqlLog
         db.commit(&log);
     } catch (const DbError& e) {
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
     inv.removeProduct(productId);
@@ -265,6 +276,7 @@ WriteResult undoLastTxn(Database& db, Inventory& inv, SqlLog& log) {
         db.commit(&log);
     } catch (const DbError& e) {              // e.g. CHECK stock >= 0 fails when stock was edited since
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
     if (!inv.undoLast().ok) resync(db, inv);
@@ -282,6 +294,7 @@ WriteResult setProductPhoto(Database& db, Inventory& inv, int productId, const s
         db.commit(&log);
     } catch (const DbError& e) {
         abortTransaction(db, log);
+        resyncIfConnectionLost(db, inv, e.errNo);
         return failure(e);
     }
     if (Product* p = inv.findById(productId)) p->hasPhoto = true;

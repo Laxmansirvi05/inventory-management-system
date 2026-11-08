@@ -69,3 +69,38 @@ void SessionStore::destroy(const std::string& token) {
     std::lock_guard<std::mutex> g(mu_);
     sessions_.erase(token);
 }
+
+void SessionStore::destroyUser(int userId, const std::string& keepToken) {
+    std::lock_guard<std::mutex> g(mu_);
+    for (auto it = sessions_.begin(); it != sessions_.end();) {
+        if (it->second.userId == userId && it->first != keepToken) it = sessions_.erase(it);
+        else ++it;
+    }
+}
+
+bool LoginThrottle::blocked(const std::string& key, int& secondsLeft) {
+    std::lock_guard<std::mutex> g(mu_);
+    auto it = entries_.find(key);
+    std::time_t now = std::time(nullptr);
+    if (it == entries_.end() || it->second.blockedUntil <= now) return false;
+    secondsLeft = static_cast<int>(it->second.blockedUntil - now);
+    return true;
+}
+
+void LoginThrottle::failure(const std::string& key, int maxFailures) {
+    std::lock_guard<std::mutex> g(mu_);
+    std::time_t now = std::time(nullptr);
+    if (entries_.size() > 10000) entries_.clear();                      // bounded memory, also against random user names
+    for (auto it = entries_.begin(); it != entries_.end();) {            // forget old, unblocked entries
+        if (it->second.blockedUntil <= now && now - it->second.first > kWindowSeconds) it = entries_.erase(it);
+        else ++it;
+    }
+    Entry& e = entries_[key];
+    if (e.fails == 0 || now - e.first > kWindowSeconds) { e.fails = 0; e.first = now; }
+    if (++e.fails >= maxFailures) { e.blockedUntil = now + kBlockSeconds; e.fails = 0; e.first = now; }
+}
+
+void LoginThrottle::success(const std::string& key) {
+    std::lock_guard<std::mutex> g(mu_);
+    entries_.erase(key);
+}
